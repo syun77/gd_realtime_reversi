@@ -1,0 +1,10 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://ckl042fne6y8q"]
+
+[ext_resource type="FontFile" uid="uid://dvyg2kq2u0n3i" path="res://assets/fonts/x8y12pxDenkiChip.ttf" id="1_j37dh"]
+
+[resource]
+font = ExtResource("1_j37dh")
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+outline_size = 8
+outline_color = Color(0.999991, 0.29220843, 0.44592106, 1)

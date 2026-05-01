@@ -18,7 +18,8 @@ var mouse_pos := Vector2.ZERO # マウス位置.
 var _turn := Disc.eType.BLACK # 現在のターン.
 
 # 盤面の初期化.
-func init_board() -> void:
+func init_board(type: Disc.eType) -> void:
+	_turn = type
 	# 初期化.
 	board.fill(Disc.eType.EMPTY)
 
@@ -28,6 +29,7 @@ func init_board() -> void:
 	place_disc(mid,     mid,     Disc.eType.WHITE)
 	place_disc(mid - 1, mid,     Disc.eType.BLACK)
 	place_disc(mid,     mid - 1, Disc.eType.BLACK)
+	update_board_hint(_turn) # 盤面のヒントを更新.
 
 func set_mouse_pos(pos: Vector2) -> void:
 	mouse_pos = pos
@@ -110,6 +112,11 @@ func place_disc(x: int, y: int, type: Disc.eType) -> void:
 # 置いた石を基準に盤面の石をひっくり返す
 func flip_disc(x: int, y: int, type: Disc.eType) -> void:
 	var flip_positions := calc_flip_positions(x, y, type)
+
+	# 相手属性にダメージを与える.
+	var type2 := Disc.reverse(type)
+	Common.damage(type2, flip_positions.size()) # ひっくり返す石の数に応じてダメージ
+
 	for pos in flip_positions:
 		place_disc(pos.x, pos.y, type) # 石を配置（ひっくり返す）
 

@@ -3,6 +3,14 @@
 [ext_resource type="Script" uid="uid://28wijdh87stt" path="res://src/scenes/Main.gd" id="1_x4os5"]
 [ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="2_8oy5r"]
 [ext_resource type="PackedScene" uid="uid://xpog626msnc7" path="res://src/objects/Board.tscn" id="2_akft7"]
+[ext_resource type="FontFile" uid="uid://dvyg2kq2u0n3i" path="res://assets/fonts/x8y12pxDenkiChip.ttf" id="4_1hqvy"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_w8f5i"]
+font = ExtResource("4_1hqvy")
+font_size = 32
+font_color = Color(0, 0, 0, 1)
+outline_size = 8
+outline_color = Color(0.999991, 0.29220843, 0.44592106, 1)
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
@@ -11,7 +19,36 @@ script = ExtResource("1_x4os5")
 
 [node name="DiscLayer" type="CanvasLayer" parent="." unique_id=86260554]
 
-[node name="Label" type="Label" parent="." unique_id=706577226]
-offset_right = 40.0
-offset_bottom = 23.0
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=1216050852]
+
+[node name="Player" type="Label" parent="UILayer" unique_id=706577226]
+offset_left = 8.0
+offset_top = 24.0
+offset_right = 256.0
+offset_bottom = 57.0
+text = "PLAYER (WHITE)"
 label_settings = ExtResource("2_8oy5r")
+horizontal_alignment = 1
+
+[node name="PlayerHPBar" type="ProgressBar" parent="UILayer" unique_id=1357882909]
+unique_name_in_owner = true
+offset_left = 8.0
+offset_top = 64.0
+offset_right = 249.0
+offset_bottom = 91.0
+
+[node name="Enemy" type="Label" parent="UILayer" unique_id=427622648]
+offset_left = 1000.0
+offset_top = 24.0
+offset_right = 1248.0
+offset_bottom = 57.0
+text = "ENEMY (BLACK)"
+label_settings = SubResource("LabelSettings_w8f5i")
+horizontal_alignment = 1
+
+[node name="EnemyHPBar" type="ProgressBar" parent="UILayer" unique_id=1318774772]
+unique_name_in_owner = true
+offset_left = 1000.0
+offset_top = 64.0
+offset_right = 1241.0
+offset_bottom = 91.0
