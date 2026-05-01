@@ -4,16 +4,16 @@ extends Node2D
 # ================================================
 const BOARD_SIZE := 8
 
-const STONE_OBJ = preload("res://src/objects/Stone.tscn")
+const DISC_OBJ = preload("res://src/objects/Disc.tscn")
 const LABEL_SETTINGS = preload("res://assets/fonts/label_settings.tres")
 
-@onready var stone_layer := $StoneLayer # 石の描画用レイヤー.
+@onready var disc_layer := $DiscLayer # 石の描画用レイヤー.
 
 var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, Stone.eType.EMPTY) # 盤面データ.
 var mouse_pos := Vector2.ZERO # マウス位置.
-var stone_map:Dictionary[int, Stone] = {} # 石のインスタンス管理用マップ.
+var disc_map:Dictionary[int, Disc] = {} # 石のインスタンス管理用マップ.
 
-var _turn := Stone.eType.BLACK # 現在のターン.
+var _turn := Disc.eType.BLACK # 現在のターン.
 
 # 開始.
 func _ready() -> void:
@@ -23,34 +23,34 @@ func _ready() -> void:
 # 盤面の初期化.
 func _init_board() -> void:
 	# 初期化.
-	board.fill(Stone.eType.EMPTY)
+	board.fill(Disc.eType.EMPTY)
 
 	# 初期配置（中央に4つ）
 	var mid := int(BOARD_SIZE / 2.0)
-	place_stone(mid - 1, mid - 1, Stone.eType.WHITE)
-	place_stone(mid, mid, Stone.eType.WHITE)
-	place_stone(mid - 1, mid, Stone.eType.BLACK)
-	place_stone(mid, mid - 1, Stone.eType.BLACK)
+	place_disc(mid - 1, mid - 1, Disc.eType.WHITE)
+	place_disc(mid,     mid,     Disc.eType.WHITE)
+	place_disc(mid - 1, mid,     Disc.eType.BLACK)
+	place_disc(mid,     mid - 1, Disc.eType.BLACK)
 
 # 石を置く.
-func place_stone(x: int, y: int, type: Stone.eType) -> void:
+func place_disc(x: int, y: int, type: Disc.eType) -> void:
 	if not board.is_valid(x, y):
 		return # 範囲外は無視.
 	
 	var index := board.pos_to_index(Vector2i(x, y))
-	var stone: Stone = stone_map.get(index)
-	if stone == null:
+	var disc: Disc = disc_map.get(index)
+	if disc == null:
 		# 新規に石を作成して配置.
-		stone = STONE_OBJ.instantiate() as Stone
-		stone_layer.add_child(stone)
-		stone_map[index] = stone
+		disc = DISC_OBJ.instantiate() as Disc
+		disc_layer.add_child(disc)
+		disc_map[index] = disc
 	board.setv(x, y, type)
 
 	var cell_size = _get_cell_size() # セルサイズを更新.
 	var start := _get_board_start()
 	var center := start + Vector2(x * cell_size + cell_size / 2.0, y * cell_size + cell_size / 2.0)
 	var radius: float = cell_size * 0.42
-	stone.set_draw_info(center, radius, type) # 描画情報を更新.
+	disc.set_draw_info(center, radius, type) # 描画情報を更新.
 
 # 更新.
 func _process(_delta: float) -> void:
@@ -65,18 +65,18 @@ func _process(_delta: float) -> void:
 		var x := int(grid_pos.x)
 		var y := int(grid_pos.y)
 		if board.is_valid(x, y):
-			place_stone(x, y, _turn) # 石を配置.
+			place_disc(x, y, _turn) # 石を配置.
 
 			# 置いた石から盤面の石をひっくり返す.
-			flip_stones(x, y, _turn)
+			flip_disc(x, y, _turn)
 			
-			_turn = Stone.reverse(_turn)
+			_turn = Disc.reverse(_turn)
 
 	# 描画更新.
 	queue_redraw()
 
 # 置いた石を基準に盤面の石をひっくり返す
-func flip_stones(x: int, y: int, type: Stone.eType) -> void:
+func flip_disc(x: int, y: int, type: Disc.eType) -> void:
 	# 8方向をチェック.
 	var directions:Array[Vector2i] = [
 		Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
@@ -88,7 +88,7 @@ func flip_stones(x: int, y: int, type: Stone.eType) -> void:
 		var pos := Vector2i(x, y) + dir # チェックする位置.
 		while board.is_valid(pos.x, pos.y):
 			var current_type := board.getv(pos.x, pos.y)
-			if current_type == Stone.eType.EMPTY:
+			if current_type == Disc.eType.EMPTY:
 				break # 空白に当たったら終了.
 			elif current_type == type:
 				# 同じ色の石に当たったら、to_flipの石をひっくり返す.
@@ -97,7 +97,7 @@ func flip_stones(x: int, y: int, type: Stone.eType) -> void:
 					board.setv(flip_pos.x, flip_pos.y, type)
 					var flip_index := board.pos_to_index(flip_pos)
 					# 石オブジェクト取得.
-					var flip_stone: Stone = stone_map.get(flip_index)
+					var flip_stone: Disc = disc_map.get(flip_index)
 					if flip_stone != null:
 						var cell_size = _get_cell_size() # セルサイズを更新.
 						var start := _get_board_start()
