@@ -50,7 +50,12 @@ func place_disc(x: int, y: int, type: Disc.eType) -> void:
 	var start := _get_board_start()
 	var center := start + Vector2(x * cell_size + cell_size / 2.0, y * cell_size + cell_size / 2.0)
 	var radius: float = cell_size * 0.42
-	disc.set_draw_info(center, radius, type) # 描画情報を更新.
+	var delay: float = 0
+	var rotating_count := _count_rotateing_discs()
+	if rotating_count > 0:
+		# 重なりがあるようにディレイを設定する.
+		delay = 0.05 * rotating_count
+	disc.set_draw_info(center, radius, type, delay) # 描画情報を更新.
 
 # 更新.
 func _process(_delta: float) -> void:
@@ -94,21 +99,19 @@ func flip_disc(x: int, y: int, type: Disc.eType) -> void:
 				# 同じ色の石に当たったら、to_flipの石をひっくり返す.
 				for flip_pos in to_flip:
 					# 盤面に反映.
-					board.setv(flip_pos.x, flip_pos.y, type)
-					var flip_index := board.pos_to_index(flip_pos)
-					# 石オブジェクト取得.
-					var flip_stone: Disc = disc_map.get(flip_index)
-					if flip_stone != null:
-						var cell_size = _get_cell_size() # セルサイズを更新.
-						var start := _get_board_start()
-						var center := start + Vector2(flip_pos.x * cell_size + cell_size / 2.0, flip_pos.y * cell_size + cell_size / 2.0)
-						var radius: float = cell_size * 0.42
-						flip_stone.set_draw_info(center, radius, type) # 描画情報を更新.
+					place_disc(flip_pos.x, flip_pos.y, type)
 				print("flip:", to_flip)
 				break
 			else:
 				to_flip.append(pos) # ひっくり返す候補に追加.
 			pos += dir
+
+func _count_rotateing_discs() -> int:
+	var count := 0
+	for disc in disc_map.values():
+		if disc.is_rotateing():
+			count += 1
+	return count
 
 func _get_cell_size() -> float:
 	var vp_size := get_viewport_rect().size
