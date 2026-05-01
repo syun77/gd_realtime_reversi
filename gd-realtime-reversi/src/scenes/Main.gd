@@ -5,6 +5,7 @@ extends Node2D
 const BOARD_SIZE := 8
 
 const STONE_OBJ = preload("res://src/objects/Stone.tscn")
+const LABEL_SETTINGS = preload("res://assets/fonts/label_settings.tres")
 
 @onready var stone_layer := $StoneLayer # 石の描画用レイヤー.
 
@@ -54,6 +55,16 @@ func _process(_delta: float) -> void:
 	# マウス位置の更新
 	mouse_pos = get_viewport().get_mouse_position()
 
+	# クリックした場所に石を配置.
+	if Input.is_action_just_pressed("click"):
+		var cell_size := _get_cell_size()
+		var start := _get_board_start()
+		var grid_pos := (mouse_pos - start) / cell_size
+		var x := int(grid_pos.x)
+		var y := int(grid_pos.y)
+		if board.is_valid(x, y):
+			place_stone(x, y, Stone.eType.BLACK) # 黒石を配置.
+
 	# 描画更新.
 	queue_redraw()
 
@@ -90,6 +101,22 @@ func _draw() -> void:
 
 	# マウス位置にグリッド線を描画.
 	_draw_mouse_cursor_grid(start, cell_size)
+	
+	# 石の情報をフォントでデバッグ描画.
+	var label_settings := LABEL_SETTINGS as LabelSettings
+	var font: Font = label_settings.font if label_settings != null else null
+	if font != null:
+		for y in range(BOARD_SIZE):
+			for x in range(BOARD_SIZE):
+				var value := board.getv(x, y)
+				var text := str(value)
+				var pos := start + Vector2(x * cell_size + 5, y * cell_size + 20)
+				var font_color := Color(1, 1, 1)
+				var font_size := 16
+				# Godot 4.6 の draw_string シグネチャに合わせて全引数を指定
+				# (font, pos, text, alignment, width, font_size, modulate, justification_flags, direction, orientation, oversampling)
+				draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, font_color, 0, 0, 0, 0.0)
+	
 
 # マウス位置にグリッド線を描画.
 func _draw_mouse_cursor_grid(start: Vector2, cell_size: float) -> void:

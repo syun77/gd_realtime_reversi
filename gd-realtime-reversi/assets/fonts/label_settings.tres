@@ -1,0 +1,6 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://blkn7yjg37rd1"]
+
+[ext_resource type="FontFile" uid="uid://dvyg2kq2u0n3i" path="res://assets/fonts/x8y12pxDenkiChip.ttf" id="1_li8ak"]
+
+[resource]
+font = ExtResource("1_li8ak")

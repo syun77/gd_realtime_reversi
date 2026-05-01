@@ -1,8 +1,14 @@
 [gd_scene format=3 uid="uid://b46fj3xyoy4g2"]
 
 [ext_resource type="Script" uid="uid://28wijdh87stt" path="res://src/scenes/Main.gd" id="1_x4os5"]
+[ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="2_8oy5r"]
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
 
 [node name="StoneLayer" type="CanvasLayer" parent="." unique_id=86260554]
+
+[node name="Label" type="Label" parent="." unique_id=706577226]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = ExtResource("2_8oy5r")
