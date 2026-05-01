@@ -4,15 +4,13 @@ extends Node2D
 # ================================================
 const BOARD_SIZE := 8
 
-# コマの種別.
-enum eReversi {
-	EMPTY = 0,
-	BLACK = 1,
-	WHITE = 2,
-}
+const STONE_OBJ = preload("res://src/objects/Stone.tscn")
 
-var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, eReversi.EMPTY)
-var mouse_pos := Vector2.ZERO
+@onready var stone_layer := $StoneLayer # 石の描画用レイヤー.
+
+var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, Stone.eType.EMPTY) # 盤面データ.
+var mouse_pos := Vector2.ZERO # マウス位置.
+var stone_map:Dictionary[int, Stone] = {} # 石のインスタンス管理用マップ.
 
 # 開始.
 func _ready() -> void:
@@ -22,14 +20,34 @@ func _ready() -> void:
 # 盤面の初期化.
 func _init_board() -> void:
 	# 初期化.
-	board.fill(eReversi.EMPTY)
+	board.fill(Stone.eType.EMPTY)
 
 	# 初期配置（中央に4つ）
 	var mid := int(BOARD_SIZE / 2.0)
-	board.setv(mid - 1, mid - 1, eReversi.WHITE)
-	board.setv(mid, mid, eReversi.WHITE)
-	board.setv(mid - 1, mid, eReversi.BLACK)
-	board.setv(mid, mid - 1, eReversi.BLACK)
+	place_stone(mid - 1, mid - 1, Stone.eType.WHITE)
+	place_stone(mid, mid, Stone.eType.WHITE)
+	place_stone(mid - 1, mid, Stone.eType.BLACK)
+	place_stone(mid, mid - 1, Stone.eType.BLACK)
+
+# 石を置く.
+func place_stone(x: int, y: int, type: Stone.eType) -> void:
+	if not board.is_valid(x, y):
+		return # 範囲外は無視.
+	
+	var index := board.pos_to_index(Vector2i(x, y))
+	var stone: Stone = stone_map.get(index)
+	if stone == null:
+		# 新規に石を作成して配置.
+		stone = STONE_OBJ.instantiate() as Stone
+		stone_layer.add_child(stone)
+		stone_map[index] = stone
+	board.setv(x, y, type)
+
+	var cell_size = _get_cell_size() # セルサイズを更新.
+	var start := _get_board_start()
+	var center := start + Vector2(x * cell_size + cell_size / 2.0, y * cell_size + cell_size / 2.0)
+	var radius: float = cell_size * 0.42
+	stone.set_draw_info(center, radius, type) # 描画情報を更新.
 
 # 更新.
 func _process(_delta: float) -> void:
@@ -39,15 +57,23 @@ func _process(_delta: float) -> void:
 	# 描画更新.
 	queue_redraw()
 
-func _draw() -> void:
-	# ウィンドウサイズに合わせて盤面を中央に描画する
+func _get_cell_size() -> float:
 	var vp_size := get_viewport_rect().size
 	var margin := 20.0 # 盤面周りの余白
+	return min((vp_size.x - margin * 2) / BOARD_SIZE, (vp_size.y - margin * 2) / BOARD_SIZE)
+
+func _get_board_start() -> Vector2:
+	var vp_size := get_viewport_rect().size
+	var cell_size := _get_cell_size()
+	var board_pixel := cell_size * BOARD_SIZE
+	return (vp_size - Vector2(board_pixel, board_pixel)) / 2.0
+
+func _draw() -> void:
 	# 盤面のセルサイズを計算
-	var cell_size: float = min((vp_size.x - margin * 2) / BOARD_SIZE, (vp_size.y - margin * 2) / BOARD_SIZE)
+	var cell_size: float = _get_cell_size()
 	# 盤面全体のサイズ.
 	var board_pixel := cell_size * BOARD_SIZE
-	var start := (vp_size - Vector2(board_pixel, board_pixel)) / 2.0
+	var start := _get_board_start()
 
 	# 背景（緑）
 	var board_rect := Rect2(start, Vector2(board_pixel, board_pixel))
@@ -62,25 +88,6 @@ func _draw() -> void:
 		var y := start.y + i * cell_size
 		draw_line(Vector2(start.x, y), Vector2(start.x + board_pixel, y), line_color, line_width)
 
-	# 石の描画
-	var stone_border := Color(0, 0, 0, 0.6)
-	for r in range(BOARD_SIZE):
-		for c in range(BOARD_SIZE):
-			var v := board.getv(r, c)
-			if v == eReversi.EMPTY:
-				continue
-			var center := start + Vector2(c * cell_size + cell_size / 2.0, r * cell_size + cell_size / 2.0)
-			var radius := cell_size * 0.42
-			# 外枠で立体感
-			draw_circle(center + Vector2(1, 1), radius, Color(0, 0, 0, 0.12))
-			# 石本体
-			var fill := Color(0, 0, 0)
-			if v == eReversi.WHITE:
-				fill = Color(1, 1, 1)
-			draw_circle(center, radius, fill)
-			# 輪郭
-			draw_circle(center, radius, stone_border, false)
-	
 	# マウス位置にグリッド線を描画.
 	_draw_mouse_cursor_grid(start, cell_size)
 

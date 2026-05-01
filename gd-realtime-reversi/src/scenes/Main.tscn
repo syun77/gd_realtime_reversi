@@ -4,3 +4,5 @@
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
+
+[node name="StoneLayer" type="CanvasLayer" parent="." unique_id=86260554]

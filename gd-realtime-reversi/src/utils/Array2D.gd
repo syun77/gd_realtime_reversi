@@ -41,6 +41,16 @@ func setv(x:int, y:int, value:int) -> void:
 func setv_pos(pos:Vector2i, value:int) -> void:
 	setv(pos.x, pos.y, value)
 
+# インデックス座標を取得.
+func index_to_pos(index:int) -> Vector2i:
+	var x := index % width
+	var y := int(1.0 * index / width)
+	return Vector2i(x, y)
+
+# 座標をインデックスに変換.
+func pos_to_index(pos:Vector2i) -> int:
+	return (pos.y * width) + pos.x
+
 func foreach(function:Callable) -> void:
 	for y in range(height):
 		for x in range(width):
