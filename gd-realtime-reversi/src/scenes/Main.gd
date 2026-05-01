@@ -12,6 +12,7 @@ const LABEL_SETTINGS = preload("res://assets/fonts/label_settings.tres")
 var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, Stone.eType.EMPTY) # 盤面データ.
 var mouse_pos := Vector2.ZERO # マウス位置.
 var disc_map:Dictionary[int, Disc] = {} # 石のインスタンス管理用マップ.
+var board_hint := Array2D.new(BOARD_SIZE, BOARD_SIZE, 0) # 石を置いたときにひっくり返すことができる石の数.
 
 var _turn := Disc.eType.BLACK # 現在のターン.
 
@@ -31,6 +32,31 @@ func _init_board() -> void:
 	place_disc(mid,     mid,     Disc.eType.WHITE)
 	place_disc(mid - 1, mid,     Disc.eType.BLACK)
 	place_disc(mid,     mid - 1, Disc.eType.BLACK)
+
+# 石を置いたときにひっくり返す石のある座標リストを取得する.
+func calc_flip_positions(x: int, y: int, type: Disc.eType) -> Array[Vector2i]:
+	var flip_positions:Array[Vector2i] = [] # ひっくり返す石の座標リスト.
+	# 8方向をチェック.
+	var directions:Array[Vector2i] = [
+		Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
+		Vector2i(-1, 0),  Vector2i.ZERO,   Vector2i(1, 0),
+		Vector2i(-1, 1),  Vector2i(0, 1),  Vector2i(1, 1)
+	]
+	for dir in directions:
+		var to_flip:Array[Vector2i] = [] # ひっくり返す石のリスト.
+		var pos := Vector2i(x, y) + dir # チェックする位置.
+		while board.is_valid(pos.x, pos.y):
+			var current_type := board.getv(pos.x, pos.y)
+			if current_type == Disc.eType.EMPTY:
+				break # 空白に当たったら終了.
+			elif current_type == type:
+				# 同じ色の石に当たったら、to_flipの石をひっくり返す.
+				flip_positions += to_flip
+				break
+			else:
+				to_flip.append(pos) # ひっくり返す候補に追加.
+			pos += dir
+	return flip_positions
 
 # 石を置く.
 func place_disc(x: int, y: int, type: Disc.eType) -> void:
@@ -77,34 +103,16 @@ func _process(_delta: float) -> void:
 			
 			_turn = Disc.reverse(_turn)
 
+			_update_board_hint() # 盤面のヒントを更新.
+
 	# 描画更新.
 	queue_redraw()
 
 # 置いた石を基準に盤面の石をひっくり返す
 func flip_disc(x: int, y: int, type: Disc.eType) -> void:
-	# 8方向をチェック.
-	var directions:Array[Vector2i] = [
-		Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
-		Vector2i(-1, 0),  Vector2i.ZERO,   Vector2i(1, 0),
-		Vector2i(-1, 1),  Vector2i(0, 1),  Vector2i(1, 1)
-	]
-	for dir in directions:
-		var to_flip:Array[Vector2i] = [] # ひっくり返す石のリスト.
-		var pos := Vector2i(x, y) + dir # チェックする位置.
-		while board.is_valid(pos.x, pos.y):
-			var current_type := board.getv(pos.x, pos.y)
-			if current_type == Disc.eType.EMPTY:
-				break # 空白に当たったら終了.
-			elif current_type == type:
-				# 同じ色の石に当たったら、to_flipの石をひっくり返す.
-				for flip_pos in to_flip:
-					# 盤面に反映.
-					place_disc(flip_pos.x, flip_pos.y, type)
-				print("flip:", to_flip)
-				break
-			else:
-				to_flip.append(pos) # ひっくり返す候補に追加.
-			pos += dir
+	var flip_positions := calc_flip_positions(x, y, type)
+	for pos in flip_positions:
+		place_disc(pos.x, pos.y, type) # 石を配置（ひっくり返す）
 
 func _count_rotateing_discs() -> int:
 	var count := 0
@@ -112,6 +120,15 @@ func _count_rotateing_discs() -> int:
 		if disc.is_rotateing():
 			count += 1
 	return count
+
+func _update_board_hint() -> void:
+	for y in range(BOARD_SIZE):
+		for x in range(BOARD_SIZE):
+			if board.is_empty(x, y):
+				var flip_positions := calc_flip_positions(x, y, _turn)
+				board_hint.setv(x, y, flip_positions.size())
+			else:
+				board_hint.setv(x, y, 0)
 
 func _get_cell_size() -> float:
 	var vp_size := get_viewport_rect().size
@@ -146,21 +163,12 @@ func _draw() -> void:
 
 	# マウス位置にグリッド線を描画.
 	_draw_mouse_cursor_grid(start, cell_size)
-	
-	# 石の情報をフォントでデバッグ描画.
-	var label_settings := LABEL_SETTINGS as LabelSettings
-	var font: Font = label_settings.font if label_settings != null else null
-	if font != null:
-		for y in range(BOARD_SIZE):
-			for x in range(BOARD_SIZE):
-				var value := board.getv(x, y)
-				var text := str(value)
-				var pos := start + Vector2(x * cell_size + 5, y * cell_size + 20)
-				var font_color := Color(1, 1, 1)
-				var font_size := 16
-				# Godot 4.6 の draw_string シグネチャに合わせて全引数を指定
-				# (font, pos, text, alignment, width, font_size, modulate, justification_flags, direction, orientation, oversampling)
-				draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, font_color, 0, 0, 0, 0.0)
+
+	# 盤面ヒントの描画.
+	board_hint.foreach(func(x, y, hint):
+		if hint > 0:
+			_draw_text_board(Vector2i(x, y), str(hint), Color(1, 1, 1))
+	)
 	
 
 # マウス位置にグリッド線を描画.
@@ -172,3 +180,13 @@ func _draw_mouse_cursor_grid(start: Vector2, cell_size: float) -> void:
 		# 四角形で描画.
 		var rect := Rect2(start + grid_pos * cell_size, Vector2(cell_size, cell_size))
 		draw_rect(rect, line_color, false, 2.0)
+
+# セルの中心にテキストを描画.
+func _draw_text_board(cell:Vector2i, text:String, color:Color, font_size:int=32) -> void:
+	var label_settings := LABEL_SETTINGS as LabelSettings
+	var font: Font = label_settings.font if label_settings != null else null
+	var cell_size := _get_cell_size()
+	var pos := _get_board_start() + Vector2((cell.x * cell_size) + (cell_size / 2.0), (cell.y * cell_size) + (cell_size / 2.0))
+	# Godot 4.6 の draw_string シグネチャに合わせて全引数を指定
+	# (font, pos, text, alignment, width, font_size, modulate, justification_flags, direction, orientation, oversampling)
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, -1.0, font_size, color, 0, 0, 0, 0.0)
