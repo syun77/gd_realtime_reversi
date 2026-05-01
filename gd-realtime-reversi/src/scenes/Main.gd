@@ -7,7 +7,8 @@ const BOARD_SIZE := 8
 const DISC_OBJ = preload("res://src/objects/Disc.tscn")
 const LABEL_SETTINGS = preload("res://assets/fonts/label_settings.tres")
 
-@onready var disc_layer := $DiscLayer # 石の描画用レイヤー.
+@onready var _board := $Board # 盤面.
+@onready var disc_layer := $DiscLayer # コマの描画用レイヤー.
 
 var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, Stone.eType.EMPTY) # 盤面データ.
 var mouse_pos := Vector2.ZERO # マウス位置.
@@ -18,6 +19,12 @@ var _turn := Disc.eType.BLACK # 現在のターン.
 
 # 開始.
 func _ready() -> void:
+	Common.register_layers({
+		"disc": disc_layer
+	})
+	# 盤面の登録.
+	Common.register_board(_board)
+	
 	# 盤面の初期化.
 	_init_board()
 

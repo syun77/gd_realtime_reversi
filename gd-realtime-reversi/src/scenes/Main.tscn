@@ -2,9 +2,12 @@
 
 [ext_resource type="Script" uid="uid://28wijdh87stt" path="res://src/scenes/Main.gd" id="1_x4os5"]
 [ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="2_8oy5r"]
+[ext_resource type="PackedScene" uid="uid://xpog626msnc7" path="res://src/objects/Board.tscn" id="2_akft7"]
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
+
+[node name="Board" parent="." unique_id=1278929866 instance=ExtResource("2_akft7")]
 
 [node name="DiscLayer" type="CanvasLayer" parent="." unique_id=86260554]
 
