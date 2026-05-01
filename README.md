@@ -1,0 +1,1 @@
+# gd_realtime_reversi
