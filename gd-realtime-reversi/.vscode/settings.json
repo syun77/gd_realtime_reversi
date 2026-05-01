@@ -1,0 +1,16 @@
+{
+    "editor.fontSize": 18,
+    "terminal.integrated.fontSize": 14,
+    "editor.renderWhitespace": "all",
+    "editor.renderControlCharacters": true,
+    "workbench.colorCustomizations": {
+        "editorWhitespace.foreground": "#6B6B6B",
+        "editorIndentGuide.background": "#222222",
+        "editorIndentGuide.activeBackground": "#444444"
+    },
+    "editor.insertSpaces": false,
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4
+}{
+    "godotTools.editorPath.godot4": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\Godot Engine\\godot.windows.opt.tools.64.exe"
+}
