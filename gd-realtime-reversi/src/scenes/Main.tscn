@@ -52,3 +52,11 @@ offset_left = 1000.0
 offset_top = 64.0
 offset_right = 1241.0
 offset_bottom = 91.0
+
+[node name="EnemyActiveTime" type="TextureProgressBar" parent="UILayer" unique_id=1449477255]
+unique_name_in_owner = true
+offset_left = 992.0
+offset_top = 120.0
+offset_right = 1168.0
+offset_bottom = 272.0
+fill_mode = 4
