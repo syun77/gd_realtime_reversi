@@ -1,0 +1,9 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://d0qqg0ite655m"]
+
+[ext_resource type="FontFile" uid="uid://dvyg2kq2u0n3i" path="res://assets/fonts/x8y12pxDenkiChip.ttf" id="1_j4gas"]
+
+[resource]
+font = ExtResource("1_j4gas")
+font_size = 32
+outline_size = 8
+outline_color = Color(0.19236407, 0.42222854, 1, 1)

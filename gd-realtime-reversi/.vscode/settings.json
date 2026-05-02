@@ -1,16 +1,20 @@
 {
+	// フォントサイズを大きくする.
     "editor.fontSize": 18,
     "terminal.integrated.fontSize": 14,
     "editor.renderWhitespace": "all",
     "editor.renderControlCharacters": true,
+	// 空白文字を見えるようにする.
     "workbench.colorCustomizations": {
         "editorWhitespace.foreground": "#6B6B6B",
         "editorIndentGuide.background": "#222222",
         "editorIndentGuide.activeBackground": "#444444"
     },
+	// タブインデント固定.
     "editor.insertSpaces": false,
     "editor.detectIndentation": false,
     "editor.tabSize": 4
 }{
-    "godotTools.editorPath.godot4": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\Godot Engine\\godot.windows.opt.tools.64.exe"
+    //"godotTools.editorPath.godot4": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\Godot Engine\\godot.windows.opt.tools.64.exe",
+    "godotTools.editorPath.godot4": "/Users/syun77/Library/Application Support/Steam/steamapps/common/Godot Engine/Godot.app",
 }

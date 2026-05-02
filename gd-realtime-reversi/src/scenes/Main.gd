@@ -7,6 +7,7 @@ extends Node2D
 @onready var _ui_layer := $UILayer # UIのレイヤー.
 @onready var _player_hp_bar := %PlayerHPBar # プレイヤーのHPバー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _enemy_hp_bar := %EnemyHPBar # 敵のHPバー (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _enemy_atb_bar := %EnemyATBBar # 敵のATBバー (ユニークIDアクセスなのでこの記述で問題ない).
 
 var _turn := Disc.eType.WHITE # 現在のターン.
 
@@ -35,6 +36,8 @@ func _init_ui() -> void:
 
 # 更新.
 func _process(_delta: float) -> void:
+	_update_enemy_atb(_delta) # 敵のATBゲージの更新.
+
 	# マウス位置の更新.
 	var mouse_pos = get_viewport().get_mouse_position()
 	_board.set_mouse_pos(mouse_pos) # 盤面にマウス位置を渡す.
@@ -45,8 +48,13 @@ func _process(_delta: float) -> void:
 
 	_update_ui() # UIの更新.
 
+# 敵のATBゲージの更新.
+func _update_enemy_atb(delta:float) -> void:
+	Common.charge_enemy_atb(delta * 100)
+
 # UIの更新.
 func _update_ui() -> void:
 	# HPバーの更新.
 	_player_hp_bar.value = Common.get_player_hp()
 	_enemy_hp_bar.value = Common.get_enemy_hp()
+	_enemy_atb_bar.value = Common.get_enemy_atb()
