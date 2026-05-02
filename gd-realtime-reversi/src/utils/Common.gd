@@ -30,6 +30,8 @@ static func is_enemy_atb_full() -> bool:
 	return _enemy_atb >= MAX_ATB
 static func charge_enemy_atb(amount:float) -> void:
 	_enemy_atb = min(MAX_ATB, _enemy_atb + amount)
+static func reset_enemy_atb() -> void:
+	_enemy_atb = 0
 
 static func damage(type:Disc.eType, amount:int) -> void:
 	if type == Disc.eType.WHITE:

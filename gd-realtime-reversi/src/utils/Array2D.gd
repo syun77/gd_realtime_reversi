@@ -71,11 +71,34 @@ func fill(value:int) -> void:
 func clear() -> void:
 	fill(default_value)
 
-# 指定の値の座標リストを返す.
+# 指定の値に一致する座標リストを返す.
 func find(value:int) -> Array[Vector2i]:
-	var result := []
+	var result:Array[Vector2i] = []
 	foreach(func(x, y, v):
 		if v == value:
+			result.append(Vector2i(x, y))
+	)
+	return result
+
+# 条件を満たす座標リストを返す.
+func find_if(function:Callable) -> Array[Vector2i]:
+	var result:Array[Vector2i] = []
+	foreach(func(x, y, v):
+		if function.call(x, y, v):
+			result.append(Vector2i(x, y))
+	)
+	return result
+
+# 最大の値に一致する座標リストを返す.
+func find_max() -> Array[Vector2i]:
+	var result:Array[Vector2i] = []
+	var max_value := [invalid_value] # gdscriptの仕様上、Lambda内で更新できるのは参照型変数のみ.
+	foreach(func(_x, _y, v):
+		if v > max_value[0]:
+			max_value[0] = v
+	)
+	foreach(func(x, y, v):
+		if v == max_value[0]:
 			result.append(Vector2i(x, y))
 	)
 	return result
