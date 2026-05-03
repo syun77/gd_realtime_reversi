@@ -15,6 +15,7 @@ enum eState {
 
 @onready var _board := $Board # 盤面.
 @onready var _disc_layer := $DiscLayer # コマの描画用レイヤー.
+@onready var _particle_layer := $ParticleLayer # パーティクルの描画用レイヤー.
 # UI.
 @onready var _ui_layer := $UILayer # UIのレイヤー.
 @onready var _player_hp_bar := %PlayerHPBar # プレイヤーのHPバー (ユニークIDアクセスなのでこの記述で問題ない).
@@ -34,6 +35,7 @@ func _ready() -> void:
 	Common.register_layers({
 		"disc": _disc_layer,
 		"ui": _ui_layer,
+		"particle": _particle_layer,
 	})
 	# 盤面の登録.
 	Common.register_board(_board)
@@ -84,7 +86,7 @@ func _update_main(_delta:float) -> void:
 	# クリックした場所に石を配置.
 	if Input.is_action_just_pressed("click"):
 		# 指定した位置に石が置けるかをチェック.
-		if not _board.can_place_disc():
+		if not _board.can_place_disc(_turn):
 			return # クリックが有効でない場合は無視.
 		_state.change(eState.PLAYER_TURN) # プレイヤーのターンに移行.
 		return
@@ -92,31 +94,31 @@ func _update_main(_delta:float) -> void:
 	# 敵のATBゲージの更新.
 	_update_enemy_atb(_delta)
 	if Common.is_enemy_atb_full():
-		_state.change(eState.ENEMY_TURN) # 敵のATBゲージが満タンになったら敵のターンに移行.
-		return
+		if _board.count_hint_total(TYPE_ENEMY) > 0: # 敵が置ける場所がある場合のみ敵のターンに移行.	
+			_state.change(eState.ENEMY_TURN) # 敵のATBゲージが満タンになったら敵のターンに移行.
+			return
 
 # 更新 > プレイヤーのターン.
 func _update_player_turn(_delta:float) -> void:
 	if _state.is_first():
 		# 石を置く.
-		_board.place_disc_player(_turn) # プレイヤーの石を配置.
+		_board.place_disc_player(_turn, true) # プレイヤーの石を配置.
 		return
 	
 	if _state.get_timer() > 0.5: # 石を置いてから0.5秒後にひっくり返す.
 		var pos = _board.grid_pos
 		var list = _board.calc_flip_positions(pos.x, pos.y, _turn) # 置いた石を基準に盤面の石をひっくり返す.
 		for pos2 in list:
-			_board.place_disc(pos2, _turn) # 石を配置（ひっくり返す）
+			_board.place_disc(pos2, _turn, true) # 石を配置（ひっくり返す）
 		
-		_board.update_board_hint(_turn) # 盤面のヒントを更新.
+		_update_hint() # ヒントの更新.
 		_state.change(eState.MAIN) # メイン状態に移行.
 
 
 # 更新 > 敵のターン.
 func _update_enemy_turn(_delta:float) -> void:
 	if _state.is_first():
-		_board.update_board_hint(TYPE_ENEMY) # 敵のヒントを更新.
-		var hint:Array2D = _board.board_hint # ヒントを取得.
+		var hint:Array2D = _board.get_board_hint(TYPE_ENEMY) # ヒントを取得.
 		var ret := hint.find_if(func(_x, _y, value):
 			if value > 0:
 				return true # 置ける場所が対象.
@@ -124,14 +126,14 @@ func _update_enemy_turn(_delta:float) -> void:
 		)
 		if ret.is_empty():
 			# 置ける場所がない場合はプレイヤーのターンに戻る.
-			_board.update_board_hint(_turn) # 盤面のヒントを更新.
+			_update_hint() # ヒントの更新.
 			_state.change(eState.MAIN)
 			Common.reset_enemy_atb() # 敵のATBゲージをリセット.
 			return
 
 		ret.shuffle() # 置ける場所をランダムにシャッフル.
 		var pos := ret[0] # 最初の場所を選択.
-		_board.place_disc(pos, TYPE_ENEMY) # 石を配置.
+		_board.place_disc(pos, TYPE_ENEMY, true) # 石を配置.
 		_enemy_place_pos = pos # 敵が石を置いた場所を保存.
 		return
 
@@ -139,10 +141,10 @@ func _update_enemy_turn(_delta:float) -> void:
 		var pos = _enemy_place_pos
 		var list = _board.calc_flip_positions(pos.x, pos.y, TYPE_ENEMY) # 置いた石を基準に盤面の石をひっくり返す.
 		for pos2 in list:
-			_board.place_disc(pos2, TYPE_ENEMY) # 石を配置（ひっくり返す）
+			_board.place_disc(pos2, TYPE_ENEMY, true) # 石を配置（ひっくり返す）
 		
 		Common.reset_enemy_atb() # 敵のATBゲージをリセット.
-		_board.update_board_hint(_turn) # 盤面のヒントを更新.
+		_update_hint() # ヒントの更新.
 		_state.change(eState.MAIN) # プレイヤーのターンに移行.
 	
 
@@ -168,6 +170,10 @@ func _update_enemy_atb(delta:float) -> void:
 	if rate < 30:
 		rate = 30
 	Common.charge_enemy_atb(delta * rate)
+
+# ヒントの更新.
+func _update_hint() -> void:
+	_board.update_board_hint_all()
 
 # UIの更新.
 func _update_ui() -> void:

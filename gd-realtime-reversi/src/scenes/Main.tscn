@@ -13,6 +13,8 @@ script = ExtResource("1_x4os5")
 
 [node name="DiscLayer" type="CanvasLayer" parent="." unique_id=86260554]
 
+[node name="ParticleLayer" type="CanvasLayer" parent="." unique_id=642894943]
+
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1216050852]
 
 [node name="Player" type="Label" parent="UILayer" unique_id=706577226]

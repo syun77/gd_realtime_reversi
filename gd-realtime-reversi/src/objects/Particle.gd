@@ -17,7 +17,6 @@ var _timer := 0.0 # タイマー.
 var _duration := 1.0 # パーティクルの持続時間.
 var _velocity := Vector2.ZERO # 速度.
 var _decay := 0.97 # 速度減衰率.
-var _color := Color(1, 1, 1, 1) # 色.
 var _base_scale := 1.0 # 基本スケール値.
 var _max_scale := 1.0 # 最大拡大スケール値.
 
@@ -35,7 +34,7 @@ func set_max_scale(max_scale: float) -> void:
 func setup(type: eType, duration: float, pos: Vector2, sc: float, color: Color) -> void:
 	_type = type
 	position = pos
-	_color = color
+	modulate = color
 	_duration = duration
 	_timer = 0.0
 	_base_scale = sc
@@ -65,7 +64,7 @@ func _process(delta: float) -> void:
 	match _type:
 		eType.RING:
 			var d = _max_scale - _base_scale
-			scale = Vector2.ONE * Easing.expo_out(d * _get_rate()) # 拡大.
+			scale = Vector2.ONE * (_base_scale + Easing.expo_out(d * _get_rate())) # 拡大.
 			modulate.a = 1.0 - _get_rate() # 徐々に透明に.
 		_:
 			pass
@@ -74,8 +73,9 @@ func _process(delta: float) -> void:
 # static functions.
 # ------------------------------------------------
 # パーティクルの生成.
-static func spawn(type: eType, duration: float, pos: Vector2, sc: float, color: Color) -> void:
+static func spawn(type: eType, duration: float, pos: Vector2, sc: float, color: Color) -> Particle:
 	var particle = Particle.new()
 	particle.setup(type, duration, pos, sc, color)
 	var layer := Common.get_layer("particle") # パーティクル用のレイヤーを取得.
 	layer.add_child(particle) # パーティクルをレイヤーに追加.
+	return particle

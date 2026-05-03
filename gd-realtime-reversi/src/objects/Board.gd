@@ -12,7 +12,8 @@ const LABEL_SETTINGS = preload("res://assets/fonts/label_settings.tres")
 
 
 var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, Stone.eType.EMPTY) # 盤面データ.
-var board_hint := Array2D.new(BOARD_SIZE, BOARD_SIZE, 0) # 石を置いたときにひっくり返すことができる石の数.
+var board_hint_black := Array2D.new(BOARD_SIZE, BOARD_SIZE, 0) # 黒石を置いたときにひっくり返すことができる石のヒント.
+var board_hint_white := Array2D.new(BOARD_SIZE, BOARD_SIZE, 0) # 白石を置いたときにひっくり返すことができる石のヒント.
 var disc_map:Dictionary[int, Disc] = {} # 石のインスタンス管理用マップ.
 var mouse_pos := Vector2.ZERO # マウス位置.
 var grid_pos := Vector2i.ZERO # マウス位置のグリッド座標.
@@ -30,7 +31,7 @@ func init_board(type: Disc.eType) -> void:
 	place_disc(Vector2i(mid,     mid    ), Disc.eType.WHITE)
 	place_disc(Vector2i(mid - 1, mid    ), Disc.eType.BLACK)
 	place_disc(Vector2i(mid,     mid - 1), Disc.eType.BLACK)
-	update_board_hint(_turn) # 盤面のヒントを更新.
+	update_board_hint_all() # 盤面のヒントをすべて更新.
 
 func set_mouse_pos(pos: Vector2) -> void:
 	mouse_pos = pos
@@ -58,9 +59,13 @@ func is_valid(x: int, y: int) -> bool:
 	return board.is_valid(x, y)
 
 # 指定の位置に石が置けるかどうか.
-func can_place_disc() -> bool:
-	if board_hint.getv_pos(grid_pos) > 0:
-		return true
+func can_place_disc(type: Disc.eType) -> bool:
+	if type == Disc.eType.WHITE:
+		if board_hint_white.getv_pos(grid_pos) > 0:
+			return true
+	else:
+		if board_hint_black.getv_pos(grid_pos) > 0:
+			return true
 	return false
 
 func count_total() -> int:
@@ -76,6 +81,20 @@ func count_if(type: Disc.eType) -> int:
 		if value == type:
 			count[0] += 1
 	)
+	return count[0]
+
+func count_hint_total(type: Disc.eType) -> int:
+	var count = [0] # gdscriptのLambdaは外部変数を直接変更できないため、配列にして参照渡しする.
+	if type == Disc.eType.WHITE:
+		board_hint_white.foreach(func(_x, _y, value):
+			if value > 0:
+				count[0] += 1
+		)
+	else:
+		board_hint_black.foreach(func(_x, _y, value):
+			if value > 0:
+				count[0] += 1
+		)
 	return count[0]
 
 # 石を置いたときにひっくり返す石のある座標リストを取得する.
@@ -104,11 +123,11 @@ func calc_flip_positions(x: int, y: int, type: Disc.eType) -> Array[Vector2i]:
 	return flip_positions
 
 # 石を置く (プレイヤー用).
-func place_disc_player(type: Disc.eType) -> void:
-	place_disc(grid_pos, type)
+func place_disc_player(type: Disc.eType, is_play_effect:bool=false) -> void:
+	place_disc(grid_pos, type, is_play_effect)
 
 # 石を置く.
-func place_disc(pos: Vector2i, type: Disc.eType) -> void:
+func place_disc(pos: Vector2i, type: Disc.eType, is_play_effect:bool=false) -> void:
 	if not board.is_valid_pos(pos):
 		return # 範囲外は無視.
 	
@@ -133,6 +152,19 @@ func place_disc(pos: Vector2i, type: Disc.eType) -> void:
 		delay = 0.05 * rotating_count
 	disc.set_draw_info(center, radius, type, delay) # 描画情報を更新.
 
+	if is_play_effect:
+		# 石を置いたときのエフェクトを再生.
+		var p = pos_to_world(pos)
+		var color := Color.BLACK if type == Disc.eType.BLACK else Color.WHITE
+		var particle := Particle.spawn(Particle.eType.RING, 0.5, p, 0.2, color)
+		particle.set_max_scale(0.8)
+
+
+func pos_to_world(pos: Vector2i) -> Vector2:
+	var cell_size = _get_cell_size() # セルサイズを更新.
+	var start := _get_board_start()
+	return start + Vector2(pos.x * cell_size + cell_size / 2.0, pos.y * cell_size + cell_size / 2.0)
+
 # 置いた石を基準に盤面の石をひっくり返す
 func flip_disc(x: int, y: int, type: Disc.eType) -> void:
 	var flip_positions := calc_flip_positions(x, y, type)
@@ -144,15 +176,33 @@ func flip_disc(x: int, y: int, type: Disc.eType) -> void:
 	for p in flip_positions:
 		place_disc(p, type) # 石を配置（ひっくり返す）
 
+# 盤面のヒントをすべて更新.
+func update_board_hint_all() -> void:
+	update_board_hint(Disc.eType.WHITE)
+	update_board_hint(Disc.eType.BLACK)
+
 # 盤面のヒントを更新する.
-func update_board_hint(turn: Disc.eType) -> void:
-	for y in range(BOARD_SIZE):
-		for x in range(BOARD_SIZE):
-			if board.is_empty(x, y):
-				var flip_positions := calc_flip_positions(x, y, turn)
-				board_hint.setv(x, y, flip_positions.size())
+func update_board_hint(type: Disc.eType) -> void:
+	board.foreach(func(x, y, value):
+		if value == Disc.eType.EMPTY:
+			var flip_positions := calc_flip_positions(x, y, type)
+			var cnt = flip_positions.size()
+			if type == Disc.eType.WHITE:
+				board_hint_white.setv(x, y, cnt)
 			else:
-				board_hint.setv(x, y, 0)
+				board_hint_black.setv(x, y, cnt)
+		else:
+			if type == Disc.eType.WHITE:
+				board_hint_white.setv(x, y, 0)
+			else:
+				board_hint_black.setv(x, y, 0)
+	)
+
+func get_board_hint(type: Disc.eType) -> Array2D:
+	if type == Disc.eType.WHITE:
+		return board_hint_white
+	else:
+		return board_hint_black
 
 func _get_cell_size() -> float:
 	var vp_size := get_viewport_rect().size
@@ -206,7 +256,7 @@ func _draw() -> void:
 	_draw_mouse_cursor_grid(start, cell_size)
 
 	# 盤面ヒントの描画.
-	board_hint.foreach(func(x, y, hint):
+	board_hint_black.foreach(func(x, y, hint):
 		if hint > 0:
 			_draw_text_board(Vector2i(x, y), str(hint), Color(1, 1, 1))
 	)
