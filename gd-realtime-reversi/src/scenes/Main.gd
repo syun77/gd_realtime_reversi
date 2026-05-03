@@ -4,6 +4,8 @@ extends Node2D
 # ================================================
 const TYPE_PLAYER := Disc.eType.BLACK # プレイヤーの石の種類.
 const TYPE_ENEMY := Disc.eType.WHITE # 敵の石の種類.
+const ENERGY_BALL_OBJ = preload("res://src/objects/EnergyBall.tscn") # エネルギーボールのシーン.
+
 # 状態.
 enum eState {
 	READY, # 開始演出.
@@ -15,12 +17,15 @@ enum eState {
 
 @onready var _board := $Board # 盤面.
 @onready var _disc_layer := $DiscLayer # コマの描画用レイヤー.
+@onready var _energy_layer := $EnergyLayer # エネルギーボールの描画用レイヤー.
 @onready var _particle_layer := $ParticleLayer # パーティクルの描画用レイヤー.
 # UI.
 @onready var _ui_layer := $UILayer # UIのレイヤー.
 @onready var _player_hp_bar := %PlayerHPBar # プレイヤーのHPバー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _enemy_hp_bar := %EnemyHPBar # 敵のHPバー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _enemy_atb_bar := %EnemyATBBar # 敵のATBバー (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _player_marker := %PlayerMarker # プレイヤーのHPマーカー (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _enemy_marker := %EnemyMarker # 敵のHPマーカー (ユニークIDアクセスなのでこの記述で問題ない).
 
 var _state := StateObj.new() # 状態オブジェクト.
 var _enemy_place_pos := Vector2i.ZERO
@@ -35,6 +40,7 @@ func _ready() -> void:
 		"disc": _disc_layer,
 		"ui": _ui_layer,
 		"particle": _particle_layer,
+		"energy": _energy_layer,
 	})
 	# 盤面の登録.
 	Common.register_board(_board)
@@ -110,7 +116,7 @@ func _update_player_turn(_delta:float) -> void:
 		for pos2 in list:
 			_board.place_disc(pos2, TYPE_PLAYER, true) # 石を配置（ひっくり返す）
 		var damage = _board.get_last_damage() # ひっくり返した石の数からダメージを計算.
-		Common.damage(TYPE_ENEMY, damage) # ダメージを適用.
+		add_energy_ball(pos, TYPE_PLAYER, damage) # エネルギーボールを追加.
 		
 		_update_hint() # ヒントの更新.
 		_state.change(eState.MAIN) # メイン状態に移行.
@@ -144,12 +150,19 @@ func _update_enemy_turn(_delta:float) -> void:
 		for pos2 in list:
 			_board.place_disc(pos2, TYPE_ENEMY, true) # 石を配置（ひっくり返す）
 		var damage = _board.get_last_damage() # ひっくり返した石の数からダメージを計算.
-		Common.damage(TYPE_PLAYER, damage) # ダメージを適用.
-		
+		add_energy_ball(pos, TYPE_ENEMY, damage) # エネルギーボールを追加.
+
 		Common.reset_enemy_atb() # 敵のATBゲージをリセット.
 		_update_hint() # ヒントの更新.
 		_state.change(eState.MAIN) # プレイヤーのターンに移行.
-	
+
+# エネルギーボールを追加.
+func add_energy_ball(pos:Vector2i, type:Disc.eType, damage:int) -> void:
+	var ball = ENERGY_BALL_OBJ.instantiate() as EnergyBall
+	var p = _board.pos_to_world(pos) # 盤面の座標をワールド座標に変換.
+	var target = _get_target_pos(type) # ターゲット座標を取得.
+	Common.get_layer("energy").add_child(ball)
+	ball.setup(type, damage, p, target, 300.0)
 
 # 更新 > ゲーム終了.
 func _update_game_end(_delta:float) -> void:
@@ -184,3 +197,11 @@ func _update_ui() -> void:
 	_player_hp_bar.value = Common.get_player_hp()
 	_enemy_hp_bar.value = Common.get_enemy_hp()
 	_enemy_atb_bar.value = Common.get_enemy_atb()
+
+# ターゲット座標の取得.
+func _get_target_pos(type:Disc.eType) -> Vector2:
+	if type == TYPE_PLAYER:
+		return _enemy_marker.global_position
+	elif type == TYPE_ENEMY:
+		return _player_marker.global_position
+	return Vector2.ZERO

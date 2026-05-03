@@ -13,8 +13,6 @@ script = ExtResource("1_x4os5")
 
 [node name="DiscLayer" type="CanvasLayer" parent="." unique_id=86260554]
 
-[node name="ParticleLayer" type="CanvasLayer" parent="." unique_id=642894943]
-
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=1216050852]
 
 [node name="Player" type="Label" parent="UILayer" unique_id=706577226]
@@ -33,6 +31,10 @@ offset_top = 64.0
 offset_right = 249.0
 offset_bottom = 91.0
 
+[node name="PlayerMarker" type="Marker2D" parent="UILayer/PlayerHPBar" unique_id=724969449]
+unique_name_in_owner = true
+position = Vector2(120, 16)
+
 [node name="Enemy" type="Label" parent="UILayer" unique_id=427622648]
 offset_left = 1000.0
 offset_top = 24.0
@@ -49,6 +51,10 @@ offset_top = 64.0
 offset_right = 1241.0
 offset_bottom = 91.0
 
+[node name="EnemyMarker" type="Marker2D" parent="UILayer/EnemyHPBar" unique_id=1739476087]
+unique_name_in_owner = true
+position = Vector2(120, 16)
+
 [node name="EnemyATBBar" type="TextureProgressBar" parent="UILayer" unique_id=1449477255]
 unique_name_in_owner = true
 offset_left = 1056.0
@@ -61,3 +67,7 @@ texture_under = ExtResource("5_w8f5i")
 texture_progress = ExtResource("5_w8f5i")
 tint_under = Color(0.75878197, 0.86885697, 0.8969501, 1)
 tint_progress = Color(0.4522881, 0.15437424, 0.9999998, 1)
+
+[node name="EnergyLayer" type="CanvasLayer" parent="." unique_id=745612322]
+
+[node name="ParticleLayer" type="CanvasLayer" parent="." unique_id=642894943]

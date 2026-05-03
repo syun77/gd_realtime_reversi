@@ -95,3 +95,23 @@ static func reverse(type:eType) -> eType:
 	elif type == eType.WHITE:
 		return eType.BLACK
 	return eType.EMPTY
+
+# 属性に対応する色を返す.
+static func get_color(type: eType, alpha: float) -> Color:
+	match type:
+		eType.BLACK:
+			return Color(0, 0, 0, alpha)
+		eType.WHITE:
+			return Color(1, 1, 1, alpha)
+		_:
+			return Color(0.5, 0.5, 0.5, alpha) # NONEの場合はグレーを返す.
+
+# 属性に対応するアウトラインの色を返す.
+static func get_outline_color(type: eType, alpha: float) -> Color:
+	match type:
+		eType.BLACK:
+			return Color(1, 0, 0, alpha) # 黒のアウトラインは赤.
+		eType.WHITE:
+			return Color(0, 1, 1, alpha) # 白のアウトラインは青.
+		_:
+			return Color(0.5, 0.5, 0.5, alpha) # NONEの場合はグレーを返す.

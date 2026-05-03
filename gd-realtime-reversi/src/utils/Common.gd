@@ -34,9 +34,9 @@ static func reset_enemy_atb() -> void:
 	_enemy_atb = 0
 
 static func damage(type:Disc.eType, amount:int) -> void:
-	if type == Disc.eType.BLACK:
+	if type == Disc.eType.WHITE:
 		_player_hp = max(0, _player_hp - amount)
-	elif type == Disc.eType.WHITE:
+	elif type == Disc.eType.BLACK:
 		_enemy_hp = max(0, _enemy_hp - amount)
 
 # レイヤーの取得
