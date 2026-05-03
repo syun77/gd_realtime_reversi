@@ -23,6 +23,9 @@ func _init(w:int, h:int, value:int = 0) -> void:
 func is_valid(x:int, y:int) -> bool:
 	return x >= 0 and x < width and y >= 0 and y < height
 
+func is_valid_pos(pos:Vector2i) -> bool:
+	return is_valid(pos.x, pos.y)
+
 # 値の取得.
 func getv(x:int, y:int) -> int:
 	if not is_valid(x, y):

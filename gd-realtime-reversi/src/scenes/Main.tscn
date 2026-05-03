@@ -3,15 +3,8 @@
 [ext_resource type="Script" uid="uid://28wijdh87stt" path="res://src/scenes/Main.gd" id="1_x4os5"]
 [ext_resource type="PackedScene" uid="uid://xpog626msnc7" path="res://src/objects/Board.tscn" id="2_akft7"]
 [ext_resource type="LabelSettings" uid="uid://d0qqg0ite655m" path="res://assets/fonts/label_white.tres" id="3_1hqvy"]
-[ext_resource type="FontFile" uid="uid://dvyg2kq2u0n3i" path="res://assets/fonts/x8y12pxDenkiChip.ttf" id="4_1hqvy"]
+[ext_resource type="LabelSettings" uid="uid://ckl042fne6y8q" path="res://assets/fonts/label_black.tres" id="3_w8f5i"]
 [ext_resource type="Texture2D" uid="uid://bknjm77rtcedm" path="res://assets/ui/circle.png" id="5_w8f5i"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_w8f5i"]
-font = ExtResource("4_1hqvy")
-font_size = 32
-font_color = Color(0, 0, 0, 1)
-outline_size = 8
-outline_color = Color(0.999991, 0.29220843, 0.44592106, 1)
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
@@ -28,7 +21,7 @@ offset_top = 24.0
 offset_right = 256.0
 offset_bottom = 57.0
 text = "PLAYER (WHITE)"
-label_settings = ExtResource("3_1hqvy")
+label_settings = ExtResource("3_w8f5i")
 horizontal_alignment = 1
 
 [node name="PlayerHPBar" type="ProgressBar" parent="UILayer" unique_id=1357882909]
@@ -44,7 +37,7 @@ offset_top = 24.0
 offset_right = 1248.0
 offset_bottom = 57.0
 text = "ENEMY (BLACK)"
-label_settings = SubResource("LabelSettings_w8f5i")
+label_settings = ExtResource("3_1hqvy")
 horizontal_alignment = 1
 
 [node name="EnemyHPBar" type="ProgressBar" parent="UILayer" unique_id=1318774772]
@@ -60,8 +53,9 @@ offset_left = 1056.0
 offset_top = 120.0
 offset_right = 1184.0
 offset_bottom = 248.0
+step = 0.1
 fill_mode = 4
 texture_under = ExtResource("5_w8f5i")
 texture_progress = ExtResource("5_w8f5i")
-tint_under = Color(0, 0, 0, 1)
-tint_progress = Color(0.8901961, 0, 0, 1)
+tint_under = Color(0.75878197, 0.86885697, 0.8969501, 1)
+tint_progress = Color(0.4522881, 0.15437424, 0.9999998, 1)

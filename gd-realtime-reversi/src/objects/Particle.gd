@@ -65,8 +65,17 @@ func _process(delta: float) -> void:
 	match _type:
 		eType.RING:
 			var d = _max_scale - _base_scale
-
 			scale = Vector2.ONE * Easing.expo_out(d * _get_rate()) # 拡大.
 			modulate.a = 1.0 - _get_rate() # 徐々に透明に.
 		_:
 			pass
+
+# ------------------------------------------------
+# static functions.
+# ------------------------------------------------
+# パーティクルの生成.
+static func spawn(type: eType, duration: float, pos: Vector2, sc: float, color: Color) -> void:
+	var particle = Particle.new()
+	particle.setup(type, duration, pos, sc, color)
+	var layer := Common.get_layer("particle") # パーティクル用のレイヤーを取得.
+	layer.add_child(particle) # パーティクルをレイヤーに追加.
