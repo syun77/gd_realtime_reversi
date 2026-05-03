@@ -2,8 +2,8 @@ extends Node2D
 # ================================================
 # メインシーン.
 # ================================================
+const TYPE_PLAYER := Disc.eType.BLACK # プレイヤーの石の種類.
 const TYPE_ENEMY := Disc.eType.WHITE # 敵の石の種類.
-
 # 状態.
 enum eState {
 	READY, # 開始演出.
@@ -23,7 +23,6 @@ enum eState {
 @onready var _enemy_atb_bar := %EnemyATBBar # 敵のATBバー (ユニークIDアクセスなのでこの記述で問題ない).
 
 var _state := StateObj.new() # 状態オブジェクト.
-var _turn := Disc.eType.BLACK # 現在のターン.
 var _enemy_place_pos := Vector2i.ZERO
 
 # 開始.
@@ -41,7 +40,7 @@ func _ready() -> void:
 	Common.register_board(_board)
 	
 	# 盤面の初期化.
-	_board.init_board(_turn)
+	_board.init_board()
 
 	# UIの初期化.
 	_init_ui()
@@ -86,7 +85,7 @@ func _update_main(_delta:float) -> void:
 	# クリックした場所に石を配置.
 	if Input.is_action_just_pressed("click"):
 		# 指定した位置に石が置けるかをチェック.
-		if not _board.can_place_disc(_turn):
+		if not _board.can_place_disc(TYPE_PLAYER):
 			return # クリックが有効でない場合は無視.
 		_state.change(eState.PLAYER_TURN) # プレイヤーのターンに移行.
 		return
@@ -102,14 +101,16 @@ func _update_main(_delta:float) -> void:
 func _update_player_turn(_delta:float) -> void:
 	if _state.is_first():
 		# 石を置く.
-		_board.place_disc_player(_turn, true) # プレイヤーの石を配置.
+		_board.place_disc_player(TYPE_PLAYER, true) # プレイヤーの石を配置.
 		return
 	
 	if _state.get_timer() > 0.5: # 石を置いてから0.5秒後にひっくり返す.
 		var pos = _board.grid_pos
-		var list = _board.calc_flip_positions(pos.x, pos.y, _turn) # 置いた石を基準に盤面の石をひっくり返す.
+		var list = _board.calc_flip_positions(pos.x, pos.y, TYPE_PLAYER) # 置いた石を基準に盤面の石をひっくり返す.
 		for pos2 in list:
-			_board.place_disc(pos2, _turn, true) # 石を配置（ひっくり返す）
+			_board.place_disc(pos2, TYPE_PLAYER, true) # 石を配置（ひっくり返す）
+		var damage = _board.get_last_damage() # ひっくり返した石の数からダメージを計算.
+		Common.damage(TYPE_ENEMY, damage) # ダメージを適用.
 		
 		_update_hint() # ヒントの更新.
 		_state.change(eState.MAIN) # メイン状態に移行.
@@ -142,6 +143,8 @@ func _update_enemy_turn(_delta:float) -> void:
 		var list = _board.calc_flip_positions(pos.x, pos.y, TYPE_ENEMY) # 置いた石を基準に盤面の石をひっくり返す.
 		for pos2 in list:
 			_board.place_disc(pos2, TYPE_ENEMY, true) # 石を配置（ひっくり返す）
+		var damage = _board.get_last_damage() # ひっくり返した石の数からダメージを計算.
+		Common.damage(TYPE_PLAYER, damage) # ダメージを適用.
 		
 		Common.reset_enemy_atb() # 敵のATBゲージをリセット.
 		_update_hint() # ヒントの更新.
@@ -156,7 +159,7 @@ func _update_game_end(_delta:float) -> void:
 func _update_enemy_atb(delta:float) -> void:
 	var total = _board.count_total()
 	var white = _board.count_if(TYPE_ENEMY)
-	var black = _board.count_if(_turn)
+	var black = _board.count_if(TYPE_PLAYER)
 	var rate = 30
 	if black == 1:
 		rate = 30 # 最後の一枚の場合は長く待ちます.

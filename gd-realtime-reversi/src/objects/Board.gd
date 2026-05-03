@@ -10,6 +10,21 @@ const BOARD_SIZE := 8
 const DISC_OBJ = preload("res://src/objects/Disc.tscn")
 const LABEL_SETTINGS = preload("res://assets/fonts/label_settings.tres")
 
+class DamageInfo:
+	var turn_cnt: int = 0 # ひっくり返した石の数.
+	var dir_cnt: int = 0 # ひっくり返した方向の数.
+	# 初期化.
+	func clear() -> void:
+		turn_cnt = 0
+		dir_cnt = 0
+	# ダメージ計算.
+	func calc_damage() -> int:
+		# ダメージ計算式（ひっくり返した駒の数:t ひっくり返した方向:d)
+		# (1 + t^1.5) * d
+		var t := turn_cnt
+		var d := dir_cnt
+		return int((1 + pow(t, 1.5)) * d)
+
 
 var board := Array2D.new(BOARD_SIZE, BOARD_SIZE, Stone.eType.EMPTY) # 盤面データ.
 var board_hint_black := Array2D.new(BOARD_SIZE, BOARD_SIZE, 0) # 黒石を置いたときにひっくり返すことができる石のヒント.
@@ -17,11 +32,10 @@ var board_hint_white := Array2D.new(BOARD_SIZE, BOARD_SIZE, 0) # 白石を置い
 var disc_map:Dictionary[int, Disc] = {} # 石のインスタンス管理用マップ.
 var mouse_pos := Vector2.ZERO # マウス位置.
 var grid_pos := Vector2i.ZERO # マウス位置のグリッド座標.
-var _turn := Disc.eType.BLACK # 現在のターン.
+var _last_damage_info := DamageInfo.new() # 最後のダメージ情報.
 
 # 盤面の初期化.
-func init_board(type: Disc.eType) -> void:
-	_turn = type
+func init_board() -> void:
 	# 初期化.
 	board.fill(Disc.eType.EMPTY)
 
@@ -32,6 +46,10 @@ func init_board(type: Disc.eType) -> void:
 	place_disc(Vector2i(mid - 1, mid    ), Disc.eType.BLACK)
 	place_disc(Vector2i(mid,     mid - 1), Disc.eType.BLACK)
 	update_board_hint_all() # 盤面のヒントをすべて更新.
+
+# clac_flip_positions()でひっくり返した情報をもとに計算されるダメージ量.
+func get_last_damage() -> int:
+	return _last_damage_info.calc_damage()
 
 func set_mouse_pos(pos: Vector2) -> void:
 	mouse_pos = pos
@@ -47,9 +65,7 @@ func click(type: Disc.eType) -> Disc.eType:
 		# 置いた石から盤面の石をひっくり返す.
 		flip_disc(grid_pos.x, grid_pos.y, type)
 		
-		_turn = Disc.reverse(type)
-
-		update_board_hint(_turn) # 盤面のヒントを更新.
+		update_board_hint(type) # 盤面のヒントを更新.
 
 		return Disc.reverse(type)
 	return type
@@ -100,6 +116,7 @@ func count_hint_total(type: Disc.eType) -> int:
 # 石を置いたときにひっくり返す石のある座標リストを取得する.
 func calc_flip_positions(x: int, y: int, type: Disc.eType) -> Array[Vector2i]:
 	var flip_positions:Array[Vector2i] = [] # ひっくり返す石の座標リスト.
+	_last_damage_info.clear() # ダメージ情報を初期化.
 	# 8方向をチェック.
 	var directions:Array[Vector2i] = [
 		Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
@@ -115,11 +132,15 @@ func calc_flip_positions(x: int, y: int, type: Disc.eType) -> Array[Vector2i]:
 				break # 空白に当たったら終了.
 			elif current_type == type:
 				# 同じ色の石に当たったら、to_flipの石をひっくり返す.
+				if to_flip.size() > 0:
+					_last_damage_info.turn_cnt += to_flip.size() # ひっくり返す石の数をカウント.
+					_last_damage_info.dir_cnt += 1 # ひっくり返す方向の数をカウント.
 				flip_positions += to_flip
 				break
 			else:
 				to_flip.append(pos) # ひっくり返す候補に追加.
 			pos += dir
+		
 	return flip_positions
 
 # 石を置く (プレイヤー用).
@@ -159,6 +180,7 @@ func place_disc(pos: Vector2i, type: Disc.eType, is_play_effect:bool=false) -> v
 		var particle := Particle.spawn(Particle.eType.RING, 0.5, p, 0.2, color)
 		particle.set_max_scale(0.8)
 
+	return
 
 func pos_to_world(pos: Vector2i) -> Vector2:
 	var cell_size = _get_cell_size() # セルサイズを更新.
