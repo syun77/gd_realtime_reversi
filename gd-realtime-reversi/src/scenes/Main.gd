@@ -22,6 +22,7 @@ enum eState {
 
 var _state := StateObj.new() # 状態オブジェクト.
 var _turn := Disc.eType.WHITE # 現在のターン.
+var _enemy_place_pos := Vector2i.ZERO
 
 # 開始.
 func _ready() -> void:
@@ -104,9 +105,15 @@ func _update_enemy_turn(_delta:float) -> void:
 		ret.shuffle() # 置ける場所をランダムにシャッフル.
 		var pos := ret[0] # 最初の場所を選択.
 		_board.place_disc(pos.x, pos.y, TYPE_ENEMY) # 石を配置.
+		_enemy_place_pos = pos # 敵が石を置いた場所を保存.
+		return
+
+	if _state.get_timer() > 0.5: # 石を置いてから0.5秒後にひっくり返す.
+		var pos = _enemy_place_pos
 		var list = _board.calc_flip_positions(pos.x, pos.y, TYPE_ENEMY) # 置いた石を基準に盤面の石をひっくり返す.
 		for pos2 in list:
 			_board.place_disc(pos2.x, pos2.y, TYPE_ENEMY) # 石を配置（ひっくり返す）
+		
 		Common.reset_enemy_atb() # 敵のATBゲージをリセット.
 		_state.change(eState.MAIN) # プレイヤーのターンに移行
 	

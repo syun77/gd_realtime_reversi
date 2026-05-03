@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cj81dut0kmtmo"]
+
+[ext_resource type="Texture2D" uid="uid://o7bfs6f7i854" path="res://assets/images/ring.png" id="1_2qke0"]
+[ext_resource type="Script" uid="uid://bf12obovpcl8l" path="res://src/objects/Particle.gd" id="2_t3rxp"]
+
+[node name="Particle" type="Sprite2D" unique_id=766349239]
+texture = ExtResource("1_2qke0")
+script = ExtResource("2_t3rxp")
