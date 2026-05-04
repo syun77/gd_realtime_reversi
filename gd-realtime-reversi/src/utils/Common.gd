@@ -9,6 +9,7 @@ const DEFAULT_ENEMY_HP := 100 # 敵の初期HP.
 const MAX_ATB := 100 # ATBゲージの最大値.
 
 static var _layers:Dictionary[String, CanvasLayer] = {} # レイヤー管理用マップ.
+static var _main:MainScene = null # Mainシーンの参照.
 static var _board:Board = null # 盤面クラスの参照.
 static var _player_hp:int = DEFAULT_PLAYER_HP # プレイヤーのHP.
 static var _enemy_hp:int = DEFAULT_ENEMY_HP	 # 敵のHP.
@@ -36,8 +37,10 @@ static func reset_enemy_atb() -> void:
 static func damage(type:Disc.eType, amount:int) -> void:
 	if type == Disc.eType.WHITE:
 		_player_hp = max(0, _player_hp - amount)
+		MainScene.request_damage_shake(type, amount)
 	elif type == Disc.eType.BLACK:
 		_enemy_hp = max(0, _enemy_hp - amount)
+		MainScene.request_damage_shake(type, amount)
 
 # レイヤーの取得
 static func get_layer(layer_name:String) -> CanvasLayer:
@@ -56,3 +59,11 @@ static func register_board(board:Board) -> void:
 # 盤面クラスの参照を取得.
 static func get_board() -> Board:
 	return _board
+
+# Mainシーンの参照を登録.
+static func register_main(scene:MainScene) -> void:
+	_main = scene
+
+# Mainシーンの参照を取得.
+static func get_main() -> MainScene:
+	return _main

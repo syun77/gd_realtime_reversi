@@ -2,9 +2,12 @@ extends Node2D
 # ================================================
 # メインシーン.
 # ================================================
+class_name MainScene
+
 const TYPE_PLAYER := Disc.eType.BLACK # プレイヤーの石の種類.
 const TYPE_ENEMY := Disc.eType.WHITE # 敵の石の種類.
 const ENERGY_BALL_OBJ = preload("res://src/objects/EnergyBall.tscn") # エネルギーボールのシーン.
+const TIMER_SHAKE := 1.0 # 画面揺れ時間 (秒).
 
 # 状態.
 enum eState {
@@ -27,12 +30,27 @@ enum eState {
 @onready var _player_marker := %PlayerMarker # プレイヤーのHPマーカー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _enemy_marker := %EnemyMarker # 敵のHPマーカー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _label_caption := %LabelCaption # キャプションラベル (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _label_caption2 := %LabelCaption2 # キャプション2ラベル (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _player_score := %PlayerScore # プレイヤーのスコア表示 (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _btn_backtotitle := %BtnBackToTitle # タイトルに戻るボタン (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _enemy_uis:Node2D = %EnemyUIs # 敵のUI群 (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _camera := $Camera2D # カメラ.
 
 var _state := StateObj.new() # 状態オブジェクト.
 var _enemy_place_pos := Vector2i.ZERO
+var _score:int = 0 # スコア.
+var _enemy_uids_position:Vector2 # 敵のUI群の初期位置.
+
+# 揺れパラメータ.
+var _player_hit_shake_value:float = 0.0 # プレイヤーのヒットエフェクトの揺れ値.
+var _enemy_hit_shake_value:float = 0.0 # 敵のヒットエフェクトの揺れ値.
+var _player_hit_shake_timer:float = 0.0 # ヒットエフェクトの画面揺れ用タイマー.
+var _enemy_hit_shake_timer:float = 0.0 # ヒットエフェクトの画面揺れ用タイマー.
 
 # 開始.
 func _ready() -> void:
+	_enemy_uids_position = _enemy_uis.position # 敵のUI群の初期位置を保存.
+
 	# ゲームの初期化.
 	Common.init_game()
 
@@ -43,6 +61,9 @@ func _ready() -> void:
 		"particle": _particle_layer,
 		"energy": _energy_layer,
 	})
+	# Mainシーンの参照を登録.
+	Common.register_main(self)
+
 	# 盤面の登録.
 	Common.register_board(_board)
 	
@@ -56,6 +77,7 @@ func _ready() -> void:
 
 # UIの初期化.
 func _init_ui() -> void:
+	_label_caption2.visible = false # リザルト用スコアは非表示.
 	_update_ui()
 
 # 更新.
@@ -77,6 +99,7 @@ func _process(delta: float) -> void:
 			# ゲーム終了の処理.
 			_update_game_end(delta)
 
+	_update_shake(delta) # 画面揺れの更新.
 	_update_ui() # UIの更新.
 
 # 更新 > 開始演出.
@@ -138,6 +161,7 @@ func _update_player_turn(_delta:float) -> void:
 		for pos2 in list:
 			_board.place_disc(pos2, TYPE_PLAYER, true) # 石を配置（ひっくり返す）
 		var damage = _board.get_last_damage() # ひっくり返した石の数からダメージを計算.
+		_score += damage # スコアにダメージを加算.
 		add_energy_ball(pos, TYPE_PLAYER, damage) # エネルギーボールを追加.
 		
 		_update_hint() # ヒントの更新.
@@ -191,16 +215,31 @@ func add_energy_ball(pos:Vector2i, type:Disc.eType, damage:int) -> void:
 func _update_game_end(_delta:float) -> void:
 	if _state.is_first():
 		# ゲーム終了時の処理.
-		var player_hp = Common.get_player_hp()
-		var enemy_hp = Common.get_enemy_hp()
-		var win = player_hp > enemy_hp
-		if player_hp == enemy_hp:
-			_label_caption.text = "DRAW!"
-		elif win == false:
+		# まずはコマの数を見る.
+		var cnt_player = _board.count_if(TYPE_PLAYER)
+		var cnt_enemy = _board.count_if(TYPE_ENEMY)
+		if cnt_player == 0:
 			_label_caption.text = "YOU LOSE!"
-		else:
+		elif cnt_enemy == 0:
 			_label_caption.text = "YOU WIN!"
+		else:
+			# HPで判定.
+			var player_hp = Common.get_player_hp()
+			var enemy_hp = Common.get_enemy_hp()		
+			if player_hp == enemy_hp:
+				# HPも同じなら引き分け.
+				_label_caption.text = "DRAW!"
+			var win = player_hp > enemy_hp
+			if win:
+				_label_caption.text = "YOU WIN!"
+			else:
+				_label_caption.text = "YOU LOSE!"
 		_label_caption.visible = true # キャプションを表示.
+		_label_caption2.visible = true # スコアを表示.
+		_label_caption2.text = "SCORE: " + str(_score) # スコアを表示.
+		_btn_backtotitle.visible = false # 一定時間非表示にする.
+	if _state.get_timer() > 3.0:
+		_btn_backtotitle.visible = true # タイトルに戻るボタンを表示.
 
 # 敵のATBゲージの更新.
 func _update_enemy_atb(delta:float) -> void:
@@ -225,12 +264,44 @@ func _update_enemy_atb(delta:float) -> void:
 func _update_hint() -> void:
 	_board.update_board_hint_all()
 
+# カメラの更新.
+func _update_shake(delta:float) -> void:
+	if _player_hit_shake_timer:
+		var amount = _player_hit_shake_value
+		var rate = _player_hit_shake_timer / TIMER_SHAKE
+		var mul = 1.0
+		if _state.get_counter() % 4 < 2:
+			mul = -1.0
+		_camera.offset = Vector2(amount * rate * mul, amount * 0.5 * randf_range(0, rate)) # ランダムなオフセットを与える.
+
+		_player_hit_shake_timer -= delta
+		if _player_hit_shake_timer < 0:
+			_player_hit_shake_timer = 0
+	else:
+		_camera.offset = Vector2.ZERO # 揺れが終わったらオフセットを元に戻す.
+
+	if _enemy_hit_shake_timer:
+		var amount = _enemy_hit_shake_value
+		var rate = _enemy_hit_shake_timer / TIMER_SHAKE
+		var mul = 1.0
+		if _state.get_counter() % 4 < 2:
+			mul = -1.0
+		_enemy_uis.position = _enemy_uids_position + Vector2(amount * rate * mul, amount * 0.5 * randf_range(0, rate)) # ランダムなオフセットを与える.
+
+		_enemy_hit_shake_timer -= delta
+		if _enemy_hit_shake_timer < 0:
+			_enemy_hit_shake_timer = 0
+	else:
+		_enemy_uis.position = _enemy_uids_position # 揺れが終わったらオフセットを元に戻す.
+
 # UIの更新.
 func _update_ui() -> void:
 	# HPバーの更新.
 	_player_hp_bar.value = Common.get_player_hp()
 	_enemy_hp_bar.value = Common.get_enemy_hp()
 	_enemy_atb_bar.value = Common.get_enemy_atb()
+	# スコアの反映.
+	_player_score.text = "SCORE: " + str(_score)
 
 # ターゲット座標の取得.
 func _get_target_pos(type:Disc.eType) -> Vector2:
@@ -239,3 +310,26 @@ func _get_target_pos(type:Disc.eType) -> Vector2:
 	elif type == TYPE_ENEMY:
 		return _player_marker.global_position
 	return Vector2.ZERO
+
+# タイトルに戻るボタン.
+func _on_btn_back_to_title_pressed() -> void:
+	get_tree().change_scene_to_file("res://src/scenes/Title.tscn") # タイトルシーンに戻る.
+
+
+# ------------------------------------------------
+# static functions
+# ------------------------------------------------
+static func request_damage_shake(type:Disc.eType, amount:int) -> void:
+	var scene = Common.get_main()
+
+	if amount <= 8:
+		amount = 8 # 最小限の揺れは確保.
+	if amount > 32:
+		amount = 32 # 最大限の揺れも確保.
+
+	if type == TYPE_ENEMY:
+		scene._player_hit_shake_timer = TIMER_SHAKE
+		scene._player_hit_shake_value = amount # ダメージ量に応じて揺れ値を設定.
+	elif type == TYPE_PLAYER:
+		scene._enemy_hit_shake_timer = TIMER_SHAKE
+		scene._enemy_hit_shake_value = amount # ダメージ量に応じて揺れ値を設定.

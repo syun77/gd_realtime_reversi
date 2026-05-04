@@ -4,8 +4,16 @@
 [ext_resource type="PackedScene" uid="uid://xpog626msnc7" path="res://src/objects/Board.tscn" id="2_akft7"]
 [ext_resource type="LabelSettings" uid="uid://d0qqg0ite655m" path="res://assets/fonts/label_white.tres" id="3_1hqvy"]
 [ext_resource type="LabelSettings" uid="uid://ckl042fne6y8q" path="res://assets/fonts/label_black.tres" id="3_w8f5i"]
+[ext_resource type="FontFile" uid="uid://dvyg2kq2u0n3i" path="res://assets/fonts/x8y12pxDenkiChip.ttf" id="4_1hqvy"]
+[ext_resource type="Theme" uid="uid://n8lkmxcv2amy" path="res://assets/fonts/progress_bar_settings.tres" id="4_ovvnk"]
 [ext_resource type="Texture2D" uid="uid://bknjm77rtcedm" path="res://assets/ui/circle.png" id="5_w8f5i"]
 [ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="6_1cauq"]
+[ext_resource type="LabelSettings" uid="uid://mmn4wwl2s8a" path="res://assets/fonts/new_label_settings_o6.tres" id="7_b1cw4"]
+
+[sub_resource type="Theme" id="Theme_6hvhb"]
+default_font = ExtResource("4_1hqvy")
+default_font_size = 48
+Label/fonts/font = ExtResource("4_1hqvy")
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
@@ -31,36 +39,51 @@ offset_left = 8.0
 offset_top = 64.0
 offset_right = 249.0
 offset_bottom = 91.0
+theme = ExtResource("4_ovvnk")
 
 [node name="PlayerMarker" type="Marker2D" parent="UILayer/PlayerHPBar" unique_id=724969449]
 unique_name_in_owner = true
 position = Vector2(120, 16)
 
-[node name="Enemy" type="Label" parent="UILayer" unique_id=427622648]
-offset_left = 1000.0
+[node name="PlayerScore" type="Label" parent="UILayer" unique_id=1317484629]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 104.0
+offset_right = 120.0
+offset_bottom = 137.0
+text = "SCORE: 0"
+label_settings = ExtResource("3_w8f5i")
+
+[node name="EnemyUIs" type="Node2D" parent="UILayer" unique_id=1028967398]
+unique_name_in_owner = true
+position = Vector2(1128, 0)
+
+[node name="Enemy" type="Label" parent="UILayer/EnemyUIs" unique_id=427622648]
+offset_left = -128.0
 offset_top = 24.0
-offset_right = 1248.0
+offset_right = 120.0
 offset_bottom = 57.0
 text = "ENEMY (WHITE)"
 label_settings = ExtResource("3_1hqvy")
 horizontal_alignment = 1
 
-[node name="EnemyHPBar" type="ProgressBar" parent="UILayer" unique_id=1318774772]
+[node name="EnemyHPBar" type="ProgressBar" parent="UILayer/EnemyUIs" unique_id=1318774772]
 unique_name_in_owner = true
-offset_left = 1000.0
+offset_left = -128.0
 offset_top = 64.0
-offset_right = 1241.0
-offset_bottom = 91.0
+offset_right = 113.0
+offset_bottom = 101.0
+theme = ExtResource("4_ovvnk")
 
-[node name="EnemyMarker" type="Marker2D" parent="UILayer/EnemyHPBar" unique_id=1739476087]
+[node name="EnemyMarker" type="Marker2D" parent="UILayer/EnemyUIs/EnemyHPBar" unique_id=1739476087]
 unique_name_in_owner = true
 position = Vector2(120, 16)
 
-[node name="EnemyATBBar" type="TextureProgressBar" parent="UILayer" unique_id=1449477255]
+[node name="EnemyATBBar" type="TextureProgressBar" parent="UILayer/EnemyUIs" unique_id=1449477255]
 unique_name_in_owner = true
-offset_left = 1056.0
+offset_left = -72.0
 offset_top = 120.0
-offset_right = 1184.0
+offset_right = 56.0
 offset_bottom = 248.0
 step = 0.1
 fill_mode = 4
@@ -71,14 +94,40 @@ tint_progress = Color(0.4522881, 0.15437424, 0.9999998, 1)
 
 [node name="LabelCaption" type="Label" parent="UILayer" unique_id=1640133827]
 unique_name_in_owner = true
-offset_top = 192.0
+offset_top = 144.0
 offset_right = 1280.0
-offset_bottom = 448.0
+offset_bottom = 400.0
 text = "READY"
 label_settings = ExtResource("6_1cauq")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="LabelCaption2" type="Label" parent="UILayer/LabelCaption" unique_id=1129741806]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 160.0
+offset_right = 1280.0
+offset_bottom = 416.0
+text = "SCORE: 0 "
+label_settings = ExtResource("7_b1cw4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BtnBackToTitle" type="Button" parent="UILayer/LabelCaption/LabelCaption2" unique_id=1892412800]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 480.0
+offset_top = 208.0
+offset_right = 800.0
+offset_bottom = 264.0
+theme = SubResource("Theme_6hvhb")
+text = "BACK TO TITLE"
+
 [node name="EnergyLayer" type="CanvasLayer" parent="." unique_id=745612322]
 
 [node name="ParticleLayer" type="CanvasLayer" parent="." unique_id=642894943]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1636231489]
+anchor_mode = 0
+
+[connection signal="pressed" from="UILayer/LabelCaption/LabelCaption2/BtnBackToTitle" to="." method="_on_btn_back_to_title_pressed"]

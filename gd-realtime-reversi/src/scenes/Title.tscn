@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://bi3jv6a235d87"]
+
+[ext_resource type="Script" uid="uid://gp3o566g3pw0" path="res://src/scenes/Title.gd" id="1_41bgn"]
+[ext_resource type="Theme" uid="uid://n8lkmxcv2amy" path="res://assets/fonts/progress_bar_settings.tres" id="1_lhblf"]
+[ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="2_uwv3b"]
+
+[node name="Title" type="Node2D" unique_id=97402598]
+script = ExtResource("1_41bgn")
+
+[node name="Label" type="Label" parent="." unique_id=1413187594]
+offset_left = 8.0
+offset_top = 160.0
+offset_right = 1288.0
+offset_bottom = 440.0
+text = "REAL-TIME
+REVERSI"
+label_settings = ExtResource("2_uwv3b")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BtnStart" type="Button" parent="." unique_id=1712034895]
+offset_left = 552.0
+offset_top = 488.0
+offset_right = 736.0
+offset_bottom = 529.0
+theme = ExtResource("1_lhblf")
+text = "GAME START"
+
+[connection signal="pressed" from="BtnStart" to="." method="_on_btn_start_pressed"]
