@@ -20,7 +20,7 @@ offset_left = 8.0
 offset_top = 24.0
 offset_right = 256.0
 offset_bottom = 57.0
-text = "PLAYER (WHITE)"
+text = "PLAYER (BLACK)"
 label_settings = ExtResource("3_w8f5i")
 horizontal_alignment = 1
 
@@ -40,7 +40,7 @@ offset_left = 1000.0
 offset_top = 24.0
 offset_right = 1248.0
 offset_bottom = 57.0
-text = "ENEMY (BLACK)"
+text = "ENEMY (WHITE)"
 label_settings = ExtResource("3_1hqvy")
 horizontal_alignment = 1
 
