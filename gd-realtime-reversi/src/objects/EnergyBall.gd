@@ -44,7 +44,7 @@ func setup(type: Disc.eType, dmg: int, pos: Vector2, target_pos: Vector2, speed:
 			if e.get_type() != _type:
 				# 異なる属性のインスタンスがホーミング対象.
 				_target_list.append(e)
-	if _target_list.size() == 0:
+	if _target_list.size() != 0:
 		# ホーミング対象が存在する場合は速度を上げる.
 		if _speed < 200.0:
 			_speed = 200.0
@@ -57,6 +57,9 @@ func get_damage() -> int:
 func reduce_damage(amount: int) -> void:
 	_dmg = max(0, _dmg - amount)
 	_label.text = str(_dmg)
+	if _dmg == 0:
+		# ダメージが0になったら消える.
+		destroy()
 
 # タイプの取得.
 func get_type() -> Disc.eType:
@@ -78,6 +81,8 @@ func _search_horming_target() -> EnergyBall:
 
 # 消滅.
 func destroy() -> void:
+	# 消滅エフェクトを生成.
+	Particle.spawn_balls(position, 10, Disc.get_color(_type, 1.0)) # 消滅エフェクトを生成.
 	queue_free() # エネルギーボールを削除.
 
 # 相殺処理.
@@ -106,6 +111,8 @@ func _ready() -> void:
 # 更新.
 func _process(delta: float) -> void:
 	_update_horming(delta)
+	# 半径の更新.
+	_update_radius()
 	queue_redraw() # 描画更新.
 
 # ホーミングの更新.
@@ -140,6 +147,11 @@ func _update_horming(delta: float) -> void:
 	next.y -= sin(deg_to_rad(_angle)) * _speed * delta
 	position = next
 
+# ダメージ量でサイズを変える
+func _update_radius() -> void:
+	_radius = 8.0 + pow(_dmg, 1.2) * 0.5
+	_shape.radius = _radius
+
 # 角度差を求める
 func _diff_angle(now:float, next:float) -> float:
 	# 差を求める
@@ -165,6 +177,5 @@ func _on_area_entered(area: Area2D) -> void:
 	if area is EnergyBall:
 		var ball = area as EnergyBall
 		if ball._type != _type:
-			# タイプが異なるエネルギーボール同士が衝突したら、両方とも消える.
-			queue_free()
-			ball.queue_free()
+			# タイプが異なるエネルギーボール同士が衝突したら、相殺処理を行う.
+			cancel_out(ball)
