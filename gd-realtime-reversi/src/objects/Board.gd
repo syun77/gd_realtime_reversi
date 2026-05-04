@@ -56,7 +56,10 @@ func set_mouse_pos(pos: Vector2) -> void:
 	mouse_pos = pos
 	var cell_size := _get_cell_size()
 	var start := _get_board_start()
-	grid_pos = Vector2i((mouse_pos - start) / cell_size)
+	var grid_new_pos := Vector2i((mouse_pos - start) / cell_size)
+	if grid_new_pos != grid_pos:
+		#Common.play_se("pi") # カーソル移動音を再生.
+		grid_pos = grid_new_pos
 
 # 盤面をクリックした.
 func click(type: Disc.eType) -> Disc.eType:
@@ -162,6 +165,8 @@ func place_disc(pos: Vector2i, type: Disc.eType, is_play_effect:bool=false) -> v
 		disc_layer.add_child(disc)
 		disc_map[index] = disc
 	board.setv_pos(pos, type)
+
+	Common.play_se("place") # 石を置く音を再生.
 
 	var cell_size = _get_cell_size() # セルサイズを更新.
 	var start := _get_board_start()

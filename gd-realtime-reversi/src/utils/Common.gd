@@ -67,3 +67,46 @@ static func register_main(scene:MainScene) -> void:
 # Mainシーンの参照を取得.
 static func get_main() -> MainScene:
 	return _main
+
+# ------------------------------------------------
+# サウンドデータ.
+# ------------------------------------------------
+const MAX_SOUND = 8 # 同時に鳴らせる最大サウンド数.
+
+# SEテーブル.
+static var _snd_tbl = {
+	"pi":    "res://assets/sounds/pi.wav",
+	"ready": "res://assets/sounds/ready.wav",
+	"place": "res://assets/sounds/place.wav",
+	"break": "res://assets/sounds/break.wav",
+	"build": "res://assets/sounds/build.wav",
+	"destroy": "res://assets/sounds/destroy.wav",
+	"hit": "res://assets/sounds/hit.wav",
+	"laser": "res://assets/sounds/laser.wav",
+	"start": "res://assets/sounds/start.wav",
+	"upgrade": "res://assets/sounds/upgrade.wav",
+}
+
+static var _se_players:Array[AudioStreamPlayer]
+
+static func setup_sounds(parent:Node) -> void:
+	_se_players = []
+	for i in range(MAX_SOUND):
+		var player := AudioStreamPlayer.new()
+		parent.add_child(player)
+		_se_players.append(player)
+
+# SEを再生.
+static func play_se(se_name:String, id:int=0) -> void:
+	if id < 0 or id >= MAX_SOUND:
+		push_error("不正なサウンドID: " + str(id))
+		return # 無効なIDは無視.
+	
+	if not se_name in _snd_tbl:
+		push_error("不正なサウンド名: " + se_name)
+		return # 無効なサウンド名は無視.
+	
+	var snd = _se_players[id]
+	# サウンドファイルをロード.
+	snd.stream = load(_snd_tbl[se_name])
+	snd.play() # サウンドを再生.

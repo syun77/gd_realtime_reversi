@@ -49,6 +49,9 @@ func setup(type: Disc.eType, dmg: int, pos: Vector2, target_pos: Vector2, speed:
 		if _speed < 200.0:
 			_speed = 200.0
 	
+	if _dmg >= 30:
+		Common.play_se("laser", 3) # ダメージ量が多い場合はレーザー音を再生.
+	
 # ダメージ量の取得.
 func get_damage() -> int:
 	return _dmg

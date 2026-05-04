@@ -7,7 +7,7 @@
 class_name StateObj
 
 var _counter:int = 0 # フレームカウンター.
-var _state:int = 0 # 状態を表す整数値.
+var _state:int = -1 # 状態を表す整数値.
 var _next_state:int = 0 # 次の状態を表す整数値.
 var _timer:float = 0 # 状態の経過時間.
 var _is_first_frame:bool = true # 状態遷移して最初のフレームかどうか.

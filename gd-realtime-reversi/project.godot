@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="gd_realtime_reversi"
-run/main_scene="uid://b46fj3xyoy4g2"
+run/main_scene="uid://bi3jv6a235d87"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

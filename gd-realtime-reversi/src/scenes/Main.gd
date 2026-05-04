@@ -35,6 +35,7 @@ enum eState {
 @onready var _btn_backtotitle := %BtnBackToTitle # タイトルに戻るボタン (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _enemy_uis:Node2D = %EnemyUIs # 敵のUI群 (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _camera := $Camera2D # カメラ.
+@onready var _bgm := $BGM
 
 var _state := StateObj.new() # 状態オブジェクト.
 var _enemy_place_pos := Vector2i.ZERO
@@ -50,6 +51,9 @@ var _enemy_hit_shake_timer:float = 0.0 # ヒットエフェクトの画面揺れ
 # 開始.
 func _ready() -> void:
 	_enemy_uids_position = _enemy_uis.position # 敵のUI群の初期位置を保存.
+
+	# サウンドのセットアップ.
+	Common.setup_sounds(self)
 
 	# ゲームの初期化.
 	Common.init_game()
@@ -105,8 +109,12 @@ func _process(delta: float) -> void:
 # 更新 > 開始演出.
 func _update_ready(_delta:float) -> void:
 	# 開始演出.
+	if _state.is_first():
+		Common.play_se("start", 1)
+		Common.play_se("ready")
 	if _state.get_timer() > 1.0:
 		# 演出が終了したらメイン状態に移行.
+		_bgm.play() # BGMを再生.
 		_label_caption.visible = false # キャプションを非表示にする.
 		_board.set_hint_draw_fg(true) # ヒントを表示する.
 		_state.change_state(eState.MAIN)
@@ -215,6 +223,7 @@ func add_energy_ball(pos:Vector2i, type:Disc.eType, damage:int) -> void:
 func _update_game_end(_delta:float) -> void:
 	if _state.is_first():
 		# ゲーム終了時の処理.
+		_bgm.stop() # BGMを停止.
 		# まずはコマの数を見る.
 		var cnt_player = _board.count_if(TYPE_PLAYER)
 		var cnt_enemy = _board.count_if(TYPE_ENEMY)
@@ -328,8 +337,10 @@ static func request_damage_shake(type:Disc.eType, amount:int) -> void:
 		amount = 32 # 最大限の揺れも確保.
 
 	if type == TYPE_ENEMY:
+		Common.play_se("hit", 2)
 		scene._player_hit_shake_timer = TIMER_SHAKE
 		scene._player_hit_shake_value = amount # ダメージ量に応じて揺れ値を設定.
 	elif type == TYPE_PLAYER:
+		Common.play_se("break", 4)
 		scene._enemy_hit_shake_timer = TIMER_SHAKE
 		scene._enemy_hit_shake_value = amount # ダメージ量に応じて揺れ値を設定.

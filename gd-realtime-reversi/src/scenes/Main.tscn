@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://bknjm77rtcedm" path="res://assets/ui/circle.png" id="5_w8f5i"]
 [ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="6_1cauq"]
 [ext_resource type="LabelSettings" uid="uid://mmn4wwl2s8a" path="res://assets/fonts/new_label_settings_o6.tres" id="7_b1cw4"]
+[ext_resource type="AudioStream" uid="uid://odi0t3i0dpik" path="res://assets/sounds/bgm.mp3" id="10_w7xoj"]
 
 [sub_resource type="Theme" id="Theme_6hvhb"]
 default_font = ExtResource("4_1hqvy")
@@ -129,5 +130,8 @@ text = "BACK TO TITLE"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1636231489]
 anchor_mode = 0
+
+[node name="BGM" type="AudioStreamPlayer2D" parent="." unique_id=1159452511]
+stream = ExtResource("10_w7xoj")
 
 [connection signal="pressed" from="UILayer/LabelCaption/LabelCaption2/BtnBackToTitle" to="." method="_on_btn_back_to_title_pressed"]
