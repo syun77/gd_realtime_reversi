@@ -99,7 +99,8 @@ func _update_main(_delta:float) -> void:
 	# 敵のATBゲージの更新.
 	_update_enemy_atb(_delta)
 	if Common.is_enemy_atb_full():
-		if _board.count_hint_total(TYPE_ENEMY) > 0: # 敵が置ける場所がある場合のみ敵のターンに移行.	
+		if _board.count_hint_total(TYPE_ENEMY) > 0: # 敵が置ける場所がある場合のみ敵のターンに移行.
+			_board.set_hint_draw_fg(false) # 敵のターン中はヒントの前景を非表示にする.
 			_state.change(eState.ENEMY_TURN) # 敵のATBゲージが満タンになったら敵のターンに移行.
 			return
 
@@ -154,6 +155,7 @@ func _update_enemy_turn(_delta:float) -> void:
 
 		Common.reset_enemy_atb() # 敵のATBゲージをリセット.
 		_update_hint() # ヒントの更新.
+		_board.set_hint_draw_fg(true) # ヒントを再表示.
 		_state.change(eState.MAIN) # プレイヤーのターンに移行.
 
 # エネルギーボールを追加.
