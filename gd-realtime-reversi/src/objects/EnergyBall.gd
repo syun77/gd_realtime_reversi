@@ -87,7 +87,7 @@ func destroy() -> void:
 
 # 相殺処理.
 func cancel_out(e:EnergyBall) -> void:
-	# タイプが異なるエネルギーボール同士が衝突したら、両方とも消える.
+	# タイプが異なるエネルギーボール同士が衝突したら相殺処理.
 	if e.get_type() != get_type():
 		var my_dmg = get_damage()
 		var other_dmg = e.get_damage()
@@ -174,8 +174,14 @@ func _draw() -> void:
 
 # 衝突.
 func _on_area_entered(area: Area2D) -> void:
+	if is_queued_for_deletion():
+		return # すでに消滅処理中の場合は無視.
+	
 	if area is EnergyBall:
 		var ball = area as EnergyBall
+		if ball.is_queued_for_deletion():
+			return # すでに消滅処理中の場合は無視.
+
 		if ball._type != _type:
 			# タイプが異なるエネルギーボール同士が衝突したら、相殺処理を行う.
 			cancel_out(ball)
