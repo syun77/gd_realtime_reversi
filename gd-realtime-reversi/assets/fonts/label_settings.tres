@@ -4,6 +4,6 @@
 
 [resource]
 font = ExtResource("1_li8ak")
-font_size = 32
-outline_size = 8
+font_size = 128
+outline_size = 32
 outline_color = Color(0.19236407, 0.42222854, 1, 1)

@@ -5,6 +5,7 @@
 [ext_resource type="LabelSettings" uid="uid://d0qqg0ite655m" path="res://assets/fonts/label_white.tres" id="3_1hqvy"]
 [ext_resource type="LabelSettings" uid="uid://ckl042fne6y8q" path="res://assets/fonts/label_black.tres" id="3_w8f5i"]
 [ext_resource type="Texture2D" uid="uid://bknjm77rtcedm" path="res://assets/ui/circle.png" id="5_w8f5i"]
+[ext_resource type="LabelSettings" uid="uid://blkn7yjg37rd1" path="res://assets/fonts/label_settings.tres" id="6_1cauq"]
 
 [node name="Main" type="Node2D" unique_id=267920379]
 script = ExtResource("1_x4os5")
@@ -67,6 +68,16 @@ texture_under = ExtResource("5_w8f5i")
 texture_progress = ExtResource("5_w8f5i")
 tint_under = Color(0.75878197, 0.86885697, 0.8969501, 1)
 tint_progress = Color(0.4522881, 0.15437424, 0.9999998, 1)
+
+[node name="LabelCaption" type="Label" parent="UILayer" unique_id=1640133827]
+unique_name_in_owner = true
+offset_top = 192.0
+offset_right = 1280.0
+offset_bottom = 448.0
+text = "READY"
+label_settings = ExtResource("6_1cauq")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EnergyLayer" type="CanvasLayer" parent="." unique_id=745612322]
 

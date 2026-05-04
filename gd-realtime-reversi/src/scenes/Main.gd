@@ -26,6 +26,7 @@ enum eState {
 @onready var _enemy_atb_bar := %EnemyATBBar # 敵のATBバー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _player_marker := %PlayerMarker # プレイヤーのHPマーカー (ユニークIDアクセスなのでこの記述で問題ない).
 @onready var _enemy_marker := %EnemyMarker # 敵のHPマーカー (ユニークIDアクセスなのでこの記述で問題ない).
+@onready var _label_caption := %LabelCaption # キャプションラベル (ユニークIDアクセスなのでこの記述で問題ない).
 
 var _state := StateObj.new() # 状態オブジェクト.
 var _enemy_place_pos := Vector2i.ZERO
@@ -47,6 +48,8 @@ func _ready() -> void:
 	
 	# 盤面の初期化.
 	_board.init_board()
+
+	_board.set_hint_draw_fg(false) # 開始演出中はヒントを非表示にする.
 
 	# UIの初期化.
 	_init_ui()
@@ -78,12 +81,21 @@ func _process(delta: float) -> void:
 
 # 更新 > 開始演出.
 func _update_ready(_delta:float) -> void:
-	# TODO: 開始演出.
-	# 演出が終了したらメイン状態に移行.
-	_state.change_state(eState.MAIN)
+	# 開始演出.
+	if _state.get_timer() > 1.0:
+		# 演出が終了したらメイン状態に移行.
+		_label_caption.visible = false # キャプションを非表示にする.
+		_board.set_hint_draw_fg(true) # ヒントを表示する.
+		_state.change_state(eState.MAIN)
 
 # 更新 > メイン.
 func _update_main(_delta:float) -> void:
+	# ゲーム終了判定.
+	if _check_game_end():
+		_board.set_hint_draw_fg(false) # ヒントを非表示にする.
+		_state.change(eState.GAME_END) # ゲーム終了状態に移行.
+		return
+
 	# マウス位置の更新.
 	var mouse_pos = get_viewport().get_mouse_position()
 	_board.set_mouse_pos(mouse_pos) # 盤面にマウス位置を渡す.
@@ -104,6 +116,15 @@ func _update_main(_delta:float) -> void:
 			_state.change(eState.ENEMY_TURN) # 敵のATBゲージが満タンになったら敵のターンに移行.
 			return
 
+# ゲーム終了の判定.
+func _check_game_end() -> bool:
+	# どちらかのHPが0以下になったらゲーム終了.
+	if Common.get_player_hp() <= 0 or Common.get_enemy_hp() <= 0:
+		return true
+	# どちらも置ける場所がない場合はゲーム終了.
+	if _board.count_hint_total(TYPE_PLAYER) == 0 and _board.count_hint_total(TYPE_ENEMY) == 0:
+		return true
+	return false
 # 更新 > プレイヤーのターン.
 func _update_player_turn(_delta:float) -> void:
 	if _state.is_first():
@@ -168,7 +189,18 @@ func add_energy_ball(pos:Vector2i, type:Disc.eType, damage:int) -> void:
 
 # 更新 > ゲーム終了.
 func _update_game_end(_delta:float) -> void:
-	pass
+	if _state.is_first():
+		# ゲーム終了時の処理.
+		var player_hp = Common.get_player_hp()
+		var enemy_hp = Common.get_enemy_hp()
+		var win = player_hp > enemy_hp
+		if player_hp == enemy_hp:
+			_label_caption.text = "DRAW!"
+		elif win == false:
+			_label_caption.text = "YOU LOSE!"
+		else:
+			_label_caption.text = "YOU WIN!"
+		_label_caption.visible = true # キャプションを表示.
 
 # 敵のATBゲージの更新.
 func _update_enemy_atb(delta:float) -> void:
